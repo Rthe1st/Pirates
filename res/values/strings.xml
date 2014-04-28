@@ -1,0 +1,45 @@
+<resources>
+
+    <string name="app_name">Picture Display</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="menu_settings">Settings</string>
+    <string name="title_activity_main">MainActivity</string>
+    <string name="change_btn_text">Press Here</string>
+    <string name="picture_text">A picture</string>
+    <!-- wind menu info strings -->
+    <string name="info_title">Wind</string>
+    
+    <!--  for main menu -->
+    <string name="title_activity_menu">MenuActivity</string>
+    
+    <!--  for levels menu -->
+    <string name="playBtnDescription">Play Button</string>
+    
+    <!-- for levelInfoLayout -->
+	<string name="levelInfoDefault">--</string>
+	<string name="levelInfoBestScore">Best score:</string>
+	<string name="levelInfoBestPlayer">Best player:</string>
+	<string name="levelInfoMineLimit">Mine limit:</string>
+	<string name="levelInfoDifficulty">Difficulty:</string>
+	<string name="levelInfoName">Name:</string>	
+	
+	<!--  for tutorial dialogs -->
+	<string name="tut1_4Info">
+	    The aim of each level is to move your ship to the port. Touch your ship to choose where to move.
+	</string>
+	<string name="tut1_3Info">
+	   Enemies will try to catch you. However these ones can only move sideways.
+	</string>
+	<string name="tut1_2Info">
+	    Use mines to block enemies and get to the port.
+	</string>
+	<string name="tut1_1Info">
+	    Getting a high enough score will earn you a gold, silver or bronze medal. You gain bonus points for each mine you dont use and lose points for each turn you take.
+	</string>
+	<string name="tut2_1Info">
+	    Different enemies move differently, brown ones can only move verticaly.
+	</string>
+		<string name="tut3_1Info">
+	    Beware red enemies, they can move 1 space in any dirction. WOAH.
+	</string>
+</resources>

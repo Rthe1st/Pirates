@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/levelsMenu"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:gravity="center_horizontal" >
+
+    <!-- height = 2 rows = rowHeight*2+vertSpace*1 -->
+    <!-- lol cant specify row height -->
+
+    <GridView
+        android:id="@+id/levelIcons"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:columnWidth="48dp"
+        android:gravity="center"
+        android:horizontalSpacing="8dp"
+        android:numColumns="auto_fit"
+        android:rowCount="2"
+        android:stretchMode="none"
+        android:verticalSpacing="8dp"
+        android:layout_weight="1"/>
+   <com.mehow.pirates.menu.leveldata.LevelInfoLayout
+	    android:id="@+id/levelInfo"
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content">
+	</com.mehow.pirates.menu.leveldata.LevelInfoLayout>
+	<ImageButton
+	    android:id="@+id/play"
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+	    android:contentDescription="@string/playBtnDescription"
+	    android:onClick="startLevel"
+	    android:src="@drawable/play_button"
+	    android:layout_marginBottom="48dp"/>
+</LinearLayout>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Each array represents the data for a tutorial screen
+    THe first element is id of the text string
+    second is the id of picture element (if there is one) -->
+    <!--  tut 1 -->
+    <string-array name="tut1_1">
+        <item>tut1_1Info</item>
+       <!--  <item>tut1_3_animation</item> -->
+    </string-array>
+    <string-array name="tut1_2">
+        <item>tut1_2Info</item>
+     <!--   <item>tut1_3_animation</item> -->
+    </string-array>
+    <string-array name="tut1_3">
+        <item>tut1_3Info</item>
+        <item>tut1_3_animation</item>
+    </string-array>
+    <string-array name="tut1_4">
+        <item>tut1_4Info</item>
+    <!--    <item>tut1_3_animation</item> -->
+    </string-array>
+    <!-- tut 2 -->
+    <string-array name="tut2_1">
+        <item>tut2_1Info</item>
+      <!--    <item>tut2_1pic</item>-->
+    </string-array>
+    <string-array name="tut3_1">
+        <item>tut3_1Info</item>
+      <!--    <item>tut2_1pic</item>-->
+    </string-array>
+</resources>

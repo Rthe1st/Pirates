@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<animation-list xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/tut1_3_ani_list" android:oneshot="false">
+    <item android:drawable="@drawable/menu_badguy_left_1" android:duration="700" />
+    <item android:drawable="@drawable/menu_badguy_left_2" android:duration="700" />
+</animation-list>

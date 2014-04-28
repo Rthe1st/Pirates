@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:id="@+id/mapRightOptionsLayout"
+    android:orientation="vertical" >
+    	<ImageButton android:id="@+id/mineBtn"
+    	    android:layout_width="wrap_content"
+    	    android:layout_height="wrap_content"
+    	    android:contentDescription="Mine Btn"
+    	   	android:src="@drawable/mine_btn"
+    	   	android:onClick="mineBtn"/>
+    	<Button android:id="@+id/EndBtn"
+    	    android:layout_width="wrap_content"
+    	    android:layout_height="wrap_content"
+   			android:text="End turn"
+    	   	android:onClick="endBtn"/>
+    	<Button android:id="@+id/restartBtn"
+    	    android:layout_width="wrap_content"
+    	    android:layout_height="wrap_content"
+   			android:text="Restart"
+    	   	android:onClick="restartBtn"/>
+    	<Button android:id="@+id/undoBtn"
+    	    android:layout_width="wrap_content"
+    	    android:layout_height="wrap_content"
+   			android:text="Undo move"
+    	   	android:onClick="undoBtn"/>
+</LinearLayout>

@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content">
+    <TableRow android:layout_marginBottom="8dp">
+    	<TextView android:id="@+id/levelInfoName"
+    	    android:layout_width="wrap_content"
+    	    android:layout_height="wrap_content"
+    	    android:layout_marginRight="4dp"
+    	    android:layout_span="2"
+    	    android:text="@string/levelInfoName"
+    	    android:singleLine="true"
+    	    android:maxWidth="50sp"
+	        android:minWidth="50sp"/>
+	    <TextView android:id="@+id/levelInfoDifficulty"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+    	    android:layout_marginRight="8dp"
+	        android:layout_span="2"
+	        android:text="@string/levelInfoDefault"
+	        />
+    </TableRow>
+    <TableRow android:layout_marginBottom="8dp">
+	    <TextView android:id="@+id/levelInfoBestScoreTitle"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+    	    android:layout_marginRight="4dp"
+	        android:text="@string/levelInfoBestScore"/>
+	    <TextView android:id="@+id/levelInfoBestScoreData"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+    	    android:layout_marginRight="8dp"
+		    android:text="@string/levelInfoDefault"
+		    android:maxWidth="50sp"
+	        android:minWidth="50sp"/>
+	    
+	   <TextView android:id="@+id/levelInfoBestPlayerTitle"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+    	    android:layout_marginRight="4dp"
+	        android:text="@string/levelInfoBestPlayer"/>
+	    <TextView android:id="@+id/levelInfoBestPlayerData"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+    	    android:layout_marginRight="8dp"
+	        android:text="@string/levelInfoDefault"
+	        android:maxWidth="50sp"
+	        android:minWidth="50sp"/>
+	</TableRow>
+    <TableRow android:layout_marginBottom="8dp">
+	    <TextView android:id="@+id/levelInfoMineLimitTitle"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:layout_marginRight="4dp"
+	        android:text="@string/levelInfoMineLimit"/>
+	    <TextView android:id="@+id/levelInfoMineLimitData"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:layout_marginRight="8dp"
+	        android:text="@string/levelInfoDefault"
+	        android:maxWidth="50sp"
+	        android:minWidth="50sp"/>
+	    
+	    <TextView android:id="@+id/levelInfoGoldScoreTitle"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:layout_marginRight="4dp"
+	        android:text="Gold Score: "/>
+	    <TextView android:id="@+id/levelInfoGoldScore"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:layout_marginRight="8dp"
+	        android:text="@string/levelInfoDefault"
+	        android:maxWidth="50sp"
+	        android:minWidth="50sp"/>
+	</TableRow>
+    <TableRow android:layout_marginBottom="8dp">
+	    <TextView
+	        android:id="@+id/levelInfoSilverScoreTitle"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:layout_marginRight="4dp"
+	        android:text="Silver Score: " />
+	     <TextView
+	        android:id="@+id/levelInfoSilverScore"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:layout_marginRight="8dp"
+	        android:text="@string/levelInfoDefault"
+	        android:maxWidth="50sp"
+	        android:minWidth="50sp" />
+	        
+	    <TextView
+	        android:id="@+id/levelInfoBronzeScoreTitle"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:layout_marginRight="4dp"
+	        android:text="Bronze Score: " />
+	    <TextView
+	        android:id="@+id/levelInfoBronzeScore"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:layout_marginRight="8dp"
+	        android:text="@string/levelInfoDefault"
+	        android:maxWidth="50sp"
+	        android:minWidth="50sp" />
+	</TableRow>
+</TableLayout>
