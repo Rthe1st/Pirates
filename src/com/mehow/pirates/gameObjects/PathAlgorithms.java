@@ -27,15 +27,7 @@ public abstract class PathAlgorithms implements Serializable{
 	//this would be abstract, except abstract methods can't be static
 	//so this should always be over-written
     abstract void computePossibleMoves(Cords cords,int range);
-
-	public Bundle pathAlgSaveState(){
-		Bundle bundle = new Bundle();
-		bundle.putIntArray("STORED_CORDS",flatten(storedCords));
-		return bundle;
-	}
-	public void loadState(Bundle bundle){
-		storedCords = inflate(bundle.getIntArray("STORED_CORDS"));
-	}
+    
 	//get
 	public Cords getStoredCords(int index){
 		return storedCords.get(index);
@@ -62,21 +54,6 @@ public abstract class PathAlgorithms implements Serializable{
         return storedCords;
     }
     //------------------------------
-    protected int[] flatten(ArrayList<Cords> notFlat){
-    	int[] flatData = new int[notFlat.size()*2];
-    	for(int i=0; i<notFlat.size(); i++){
-    		flatData[i*2] = notFlat.get(i).x;
-    		flatData[(i*2)+1] = notFlat.get(i).y;
-    	}
-    	return flatData;
-    }
-    protected ArrayList<Cords> inflate(int[] flatData){
-    	ArrayList<Cords> inflatted = new ArrayList<Cords>();
-    	for(int i=0; i<flatData.length;i+=2){
-    		inflatted.add(new Cords(flatData[i], flatData[i+1]));
-    	}
-    	return inflatted;
-    }
     protected void quadDirectCompute(Cords cords, int range){
 		if(cords.y-1 >= 0){
 			computePossibleMoves(new Cords(cords.x,cords.y-1), range);

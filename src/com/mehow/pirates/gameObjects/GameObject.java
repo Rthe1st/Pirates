@@ -7,7 +7,6 @@ import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.RectF;
-import android.os.Bundle;
 
 import com.mehow.pirates.Cords;
 import com.mehow.pirates.TurnRecords;
@@ -125,38 +124,4 @@ abstract public class GameObject implements Serializable{
 		System.out.println("startPoint: "+startPoint+" tileDim:"+tileDimension+" animationOffset: "+animationOffset);
 		return (startPoint*tileDimension)+animationOffset;	
     }
-    
-    /*
-    Activity lifecycle Bundling
-    */
-
-	public Bundle saveState(){
-		Bundle bundle = new Bundle();
-		//bundle.putBundle("PAST_TURN_DATA", pastTurnData.saveState());
-	//	bundle.putBundle("CUR_MOVES_CORDS", flattenCurCords());
-		return bundle;
-	}
-	public void loadState(Bundle bundle){
-		//pastTurnData.loadState(bundle.getBundle("PAST_TURN_DATA"));
-		//inflateCurCords(bundle.getBundle("CUR_MOVES_CORDS"));
-	}
-    
-	/*private Bundle flattenCurCords(){
-		Bundle bundle = new Bundle();
-		Cords cords;
-		bundle.putInt("PREV_MOVES_SIZE", currentMoveCords.size());
-		for(int i=0; i<currentMoveCords.size();i++){
-			cords = currentMoveCords.get(i);
-			bundle.putInt("TURN_"+i+"_X", cords.x);
-			bundle.putInt("TURN_"+i+"_Y", cords.y);
-		}
-		return bundle;
-	}
-	private Bundle inflateCurCords(Bundle bundle){
-		int curCordsSize = bundle.getInt("PREV_MOVES_SIZE");
-		for(int i=0; i<curCordsSize;i++){
-			//currentMoveCords.add(new Cords(bundle.getInt("TURN_"+i+"_X"),bundle.getInt("TURN_"+i+"_Y")));
-		}
-		return bundle;
-	}*/
 }

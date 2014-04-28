@@ -8,7 +8,6 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.RectF;
-import android.os.Bundle;
 
 import com.mehow.pirates.Cords;
 import com.mehow.pirates.R;
@@ -109,43 +108,5 @@ public class Ship extends GameObject{
     		drawArea.offsetTo(xOffset, yOffset);
     		canvas.drawRect(drawArea, movePaint);
     	}
-    }
-    /*
-        Activity lifecycle Bundling
-    */
-	private Bundle flattenPrevMoves(){
-		Bundle bundle = new Bundle();
-		Cords cords;
-	/*	bundle.putInt("PREV_MOVES_SIZE", previousMoves.size());
-		for(int i=0; i<previousMoves.size();i++){
-			cords = previousMoves.get(i);
-			bundle.putInt("TURN_"+i+"_X", cords.x);
-			bundle.putInt("TURN_"+i+"_Y", cords.y);
-		}*/
-		return bundle;
-	}
-	private Bundle inflatePrevMoves(Bundle bundle){
-		/*int prevMovesSize = bundle.getInt("PREV_MOVES_SIZE");
-		for(int i=0; i<prevMovesSize;i++){
-			previousMoves.add(new Cords(bundle.getInt("TURN_"+i+"_X"),bundle.getInt("TURN_"+i+"_Y")));
-		}*/
-		return bundle;
-	}
-
-	/*public Bundle shipSaveState(){
-		Bundle bundle = new Bundle();
-        bundle.putSerializable();
-		bundle.putInt("SHIP_X", shipCord.x);
-		bundle.putInt("SHIP_Y", shipCord.y);
-		bundle.putBundle("PREV_MOVES", flattenPrevMoves());
-		bundle.putBundle("shipPathAlgs", shipPathAlgs.pathAlgSaveState());
-		return bundle;
-	}*/
-
-    public void loadState(Bundle bundle){
-        shipPathAlgs.loadState(bundle.getBundle("shipPathAlgs"));
-        int x = bundle.getInt("SHIP_X");
-        int y = bundle.getInt("SHIP_Y");
-        inflatePrevMoves(bundle.getBundle("PREV_MOVES"));
     }
 }

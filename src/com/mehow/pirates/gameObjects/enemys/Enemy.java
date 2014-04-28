@@ -109,36 +109,4 @@ abstract public class Enemy extends GameObject{
     public void resetMovesLeft() {
         numOfMovesLeft = numOfMovesAllowed;
     }
-    
-    public Bundle saveState() {
-        Bundle bundle = new Bundle();
-        bundle.putInt("CUR_X", turnRecords.getStartCords().x);//this could be wrong
-        bundle.putInt("CUR_Y", turnRecords.getStartCords().y);
-        bundle.putInt("TURNS_LEFT", numOfMovesLeft);
-        bundle.putBundle("PREVIOUS_CORDS", flattenPrevCords());
-        return bundle;
-    }
-
-    public void loadState(Bundle bundle) {
-        //currentCords = new Cords(bundle.getInt("CUR_X"), bundle.getInt("CUR_Y"));
-        numOfMovesLeft = bundle.getInt("TURNS_LEFT");
-        inflatePrevCords(bundle.getBundle("PREVIOUS_CORDS"));
-    }
-
-    private Bundle flattenPrevCords() {
-        Bundle bundle = new Bundle();
-        bundle.putInt("PREV_CORDS_SIZE", previousCords.size());
-        for (int i = 0; i < previousCords.size(); i++) {
-            bundle.putInt("TURN_" + i + "_X", previousCords.get(i).x);
-            bundle.putInt("TURN_" + i + "_Y", previousCords.get(i).y);
-        }
-        return bundle;
-    }
-
-    private void inflatePrevCords(Bundle bundle) {
-        int previousCordsSize = bundle.getInt("PREV_CORDS_SIZE");
-        for (int i = 0; i < previousCordsSize; i++) {
-            previousCords.add(new Cords(bundle.getInt("TURN_" + i + "_X"), bundle.getInt("TURN_" + i + "_Y")));
-        }
-    }
 }

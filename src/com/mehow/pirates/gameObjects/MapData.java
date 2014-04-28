@@ -266,48 +266,4 @@ public class MapData implements PathAlgorithms.Callbacks {
 			ship.clearPossibleMoves();
 		}
 	}
-
-	// bundle stuff
-
-	/*
-	 * public Bundle mapDataSaveState(){ Bundle bundle = new Bundle();
-	 * bundle.putIntArray("FLAT_MAP", flattenMap()); bundle.putBundle("SHIP",
-	 * ship.shipSaveState()); bundle.putInt("MAP_WIDTH", mapWidth);
-	 * bundle.putInt("MAP_HEIGHT", mapHeight); bundle.putBundle("MINES",
-	 * mines.saveState());
-	 * //System.out.println("pre save enemycon size: "+enemyContainer
-	 * .getAllEnemys().size());
-	 * //System.out.println("presave enemy num"+enemies.size());
-	 * bundle.putBundle("FLAT_ENEMIES", enemyContainer.flattenEnemies());
-	 * //System
-	 * .out.println("enemy num post save: "+bundle.getIntArray("FLAT_ENEMIES"
-	 * ).length); return bundle; }
-	 */
-	/*
-	 * public void loadState(Bundle bundle){ mapWidth =
-	 * bundle.getInt("MAP_WIDTH"); mapHeight = bundle.getInt("MAP_HEIGHT");
-	 * mapData = inflateMap(bundle.getIntArray("FLAT_MAP"));
-	 * ship.loadState(bundle.getBundle("SHIP"));
-	 * mines.loadState(bundle.getBundle("MINES"));
-	 * enemyContainer.inflateEnemies(bundle.getBundle("FLAT_ENEMIES"));
-	 * System.out
-	 * .println("post load enemycontainer size: "+enemyContainer.getAllEnemys
-	 * ().size()); //System.out.println("enemies post load: "+enemies.size()); }
-	 */
-
-	/*
-	 * private int[] flattenMap(){ int[] flatMap = new
-	 * int[(mapWidth*mapHeight)]; for(int x = 0; x < mapWidth; x++){ for(int
-	 * y=0; y < mapHeight; y++){ flatMap[(x*mapHeight)+y] = mapData[x][y]; } }
-	 * return flatMap; }
-	 */
-	/*private int[][] inflateMap(int[] flatMap) {
-		System.out.println("inflate");
-		int[][] inflattedMap = new int[mapWidth][mapHeight];
-		for (int x = 0; x < mapWidth; x++) {
-			System.arraycopy(flatMap, (x * mapWidth) + 0, inflattedMap[x], 0,
-					mapHeight);
-		}
-		return inflattedMap;
-	}*/
 }

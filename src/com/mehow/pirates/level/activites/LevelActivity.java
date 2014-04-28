@@ -73,13 +73,6 @@ public class LevelActivity extends FragmentActivity
         	setContentView(R.layout.map_vertical);
         }
         tileView = ((TileView)findViewById(R.id.map));
-        if(savedInstanceState != null){
-        	//gameLogic.mapData.loadState(savedInstanceState.getBundle("MAPDATA"));
-            //is this for if exits whilst in the middle of computer moves?
-    		//PathAlgs.loadState(savedInstanceState.getBundle("PATH_ALGS"));
-        	//gameLogic.loadState(savedInstanceState.getBundle("TILE_VIEW"));
-        }
-        System.out.println("created");
     }
     @Override
     public void onStart(){
@@ -110,24 +103,14 @@ public class LevelActivity extends FragmentActivity
     @Override
     public void onRestoreInstanceState(Bundle savedInstanceState){
     	super.onRestoreInstanceState(savedInstanceState);
-    	//gameLogic.mapData.loadState(savedInstanceState.getBundle("MAPDATA"));
-    	//PathAlgs.loadState(savedInstanceState.getBundle("PATH_ALGS"));
-    	//gameLogic.loadState(savedInstanceState.getBundle("TILE_VIEW"));
-    	//savedInstanceState.getBundle("GAME_LOGIC");
     	restartFlag = savedInstanceState.getBoolean("restartFlag");
-    	//tileView.invalidate();
     	System.out.println("restarted");
     }
     @Override
     public void onSaveInstanceState(Bundle savedInstanceState){
     	System.out.println("saved");
-    	//had a null pointer on tileview putbundle, keep code for reoccurence
-    	//System.out.println(((TileView)findViewById(R.id.map)).tileViewSaveState());
-    	//savedInstanceState.putBundle("TILE_VIEW",((TileView)findViewById(R.id.map)).tileViewSaveState());
-    	//savedInstanceState.putBundle("MAPDATA", gameLogic.mapData.mapDataSaveState());
     	savedInstanceState.putBundle("GAME_LOGIC", gameLogic.saveState());
     	savedInstanceState.putBoolean("restartFlag", restartFlag);
-    	//savedInstanceState.putBundle("PATH_ALGS", PathAlgs.pathAlgSaveState());
     	super.onSaveInstanceState(savedInstanceState);
     }
     @Override
