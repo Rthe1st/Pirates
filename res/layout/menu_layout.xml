@@ -21,10 +21,4 @@
     	    android:layout_below="@id/title"
     	    android:layout_marginLeft="48dp"
     	    android:layout_marginRight="8dp"/>
-	<ImageButton android:id="@+id/menuBkBtn"
-	   android:layout_width="48dp"
-	   android:layout_height="48dp"
-	   android:layout_alignParentBottom="true"
-	   android:layout_alignParentLeft="true"
-	   android:onClick="menuListLayout"/>
 </RelativeLayout>

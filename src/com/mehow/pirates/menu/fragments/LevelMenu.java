@@ -32,6 +32,8 @@ public class LevelMenu extends Fragment{
 
     public interface Callbacks{
         public void startLevel(View view);
+        public int getMapChoice();
+        public void setMapChoice(int mapChoice);
     }
     Callbacks mCallbacks;
 
@@ -84,10 +86,10 @@ public class LevelMenu extends Fragment{
             View v, int position, long id){
         		levelIconDataArray.setCurHighlighted(position);
         		myAdapter.notifyDataSetChanged();
-                MenuActivity.mapChoice = position+1;
+                mCallbacks.setMapChoice(position+1);
                 //call database
                 MenuActivity activity = ((MenuActivity)parent.getContext());
-                Cursor cursor = activity.dbUi.getMenuLevelInfo(MenuActivity.mapChoice);
+                Cursor cursor = activity.dbUi.getMenuLevelInfo(mCallbacks.getMapChoice());
                 cursor.moveToFirst();
                 int mineLimit = cursor.getInt(cursor.getColumnIndexOrThrow(DefaultLevelDatabaseHelper.MINELIMIT));
                 String name = cursor.getString(cursor.getColumnIndexOrThrow(DefaultLevelDatabaseHelper.LEVELNAME));
