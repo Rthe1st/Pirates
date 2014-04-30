@@ -56,10 +56,6 @@ abstract public class GameObject implements Serializable{
         return turnRecords.exists();
     }
     
-    public Cords getCurrentStepCords(){
-        return turnRecords.getLatestCords();
-    }
-    
     //-----------------
     //ANIMATION
     //----------------

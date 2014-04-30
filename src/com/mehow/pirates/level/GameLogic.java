@@ -347,7 +347,9 @@ public class GameLogic implements TileView.GameLogicCallbacks
 		if(getGameState() == GameStates.MOVE_BEGUNG){
         	mapData.shipMap.get(selectedCords).drawShipMoves(canvas, drawArea);
         }else if(getGameState() == GameStates.MINE_MODE){
-        	mapData.shipMap.get(selectedCords).drawMineMoves(canvas, drawArea);
+        	//cords hack, because UI only account for single ship at the moment
+        	Cords shipCords = (new ArrayList<Ship>(mapData.shipMap.getAll())).get(0).getLatestCords();
+        	mapData.shipMap.get(shipCords).drawMineMoves(canvas, drawArea);
         }
     }
 }
