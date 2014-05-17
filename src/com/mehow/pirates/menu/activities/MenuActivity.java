@@ -9,14 +9,13 @@ import android.support.v4.app.FragmentTransaction;
 import android.view.View;
 
 import com.mehow.pirates.R;
-import com.mehow.pirates.database.CustomLevelDbUIFunctions;
-import com.mehow.pirates.database.DefaultLevelDatabaseUIFunctions;
 import com.mehow.pirates.level.activites.LevelActivity;
 import com.mehow.pirates.menu.fragments.LevelMenu;
 import com.mehow.pirates.menu.fragments.MenuList;
 import com.mehow.pirates.menu.fragments.RandomLevelMenu;
 import com.mehow.pirates.menu.fragments.SettingsMenu;
 import com.mehow.pirates.menu.fragments.StatsMenu;
+import com.mehow.pirates.database.DatabaseHelper;
 
 
 // reflection could be used here, pass in a fragment class and
@@ -34,9 +33,9 @@ public class MenuActivity extends FragmentActivity implements
 
 	public static final String MAP_CHOICE_EXTRA = "MAP_CHOICE";
 	public int mapChoice;// level currently selected
-	public DefaultLevelDatabaseUIFunctions dbUi;
-	public CustomLevelDbUIFunctions customDbUI;
-
+	//public DefaultLevelDatabaseUIFunctions dbUi;
+	public DatabaseHelper databaseHelper;
+	
 	// public static final int MAIN_ACTIVITY_RC = 1;//RC stands for request code
 
 	private static enum MenuFragmentType {
@@ -53,8 +52,8 @@ public class MenuActivity extends FragmentActivity implements
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
-		dbUi = new DefaultLevelDatabaseUIFunctions(this, null);
-		customDbUI = new CustomLevelDbUIFunctions(this, null);
+		//dbUi = new DefaultLevelDatabaseUIFunctions(this, null);
+		databaseHelper = DatabaseHelper.getInstance(this);
 		mapChoice = 1;// delay until loading levels fragments?
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.menu_layout);
@@ -96,8 +95,9 @@ public class MenuActivity extends FragmentActivity implements
 	@Override
 	public void onStop() {
 		super.onStop();
-		dbUi.closeDb();
-		customDbUI.closeDb();
+		//not closing may be bad practise
+		//databaseHelper.close();
+		//databaseHelper.clearDatabase();
 	}
 
 	@Override
@@ -127,7 +127,7 @@ public class MenuActivity extends FragmentActivity implements
 	}
 
 	public void clearData(View view) {
-		dbUi.clearScores();
+		databaseHelper.levelsTable.clearScores();
 	}
 
 	public <T extends Fragment> void setContentFragment(T fragment) {

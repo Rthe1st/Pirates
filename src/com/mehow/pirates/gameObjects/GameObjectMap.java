@@ -22,10 +22,15 @@ public class GameObjectMap<T extends GameObject>  implements Serializable{
 	// lists for dead things, this needs improving as well
 	public ArrayList<T> deadGos;
 	
+	public GameObjectMap(){
+		goMap = new TreeMap<Cords, T>();
+		deadGos = new ArrayList<T>();
+	}
 	public GameObjectMap(TreeMap<Cords, T> tGoMap){
 		goMap = tGoMap;
 		deadGos = new ArrayList<T>();
 	}
+	
 	
 	public T get(Cords cords){
 		return goMap.get(cords);

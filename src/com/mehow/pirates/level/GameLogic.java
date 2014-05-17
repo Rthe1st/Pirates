@@ -8,15 +8,15 @@ import android.graphics.Canvas;
 import android.graphics.RectF;
 import android.os.Bundle;
 
+import com.mehow.pirates.AnimationLogic;
 import com.mehow.pirates.Cords;
-import com.mehow.pirates.R;
+import com.mehow.pirates.LevelInfo;
 import com.mehow.pirates.gameObjects.GoalTile;
 import com.mehow.pirates.gameObjects.MapData;
 import com.mehow.pirates.gameObjects.Mine;
 import com.mehow.pirates.gameObjects.ScoreCalc;
 import com.mehow.pirates.gameObjects.Ship;
 import com.mehow.pirates.gameObjects.Tile;
-import com.mehow.pirates.AnimationLogic;
 
 /**
  * Created by User on 11/01/14.
@@ -27,9 +27,7 @@ public class GameLogic implements TileView.GameLogicCallbacks
     public Callbacks mCallbacks;
 
     public interface Callbacks{
-        public int getMineLimit();
         public void showLevelCompleteDialog(boolean setNewScore, int score);
-        public int getLevelBestScore();
         public void updateCounts(int mineChange, int turnChange, int scoreChange);
         public Resources getResources();
         public int getMapId();
@@ -37,6 +35,8 @@ public class GameLogic implements TileView.GameLogicCallbacks
         public void showGameOverDialog();
         public void invalidateMap();
     }
+    
+    public LevelInfo levelInfo;
 
 //game states
     //see flow chart for details
@@ -67,19 +67,16 @@ public class GameLogic implements TileView.GameLogicCallbacks
     private Cords selectedCords;
 
     //constructor when creating level for first time (ie no android lifecycle funnyness)
-    public GameLogic(Activity callBackActivity){
+    public GameLogic(Activity callBackActivity, LevelInfo tLevelInfo){
         if (!(callBackActivity instanceof Callbacks)) {
             throw new IllegalStateException("Activity must implement GameLogic.Callbacks.");
         }
+        levelInfo = tLevelInfo;
         mCallbacks = (Callbacks)callBackActivity;
-        mineCount = mCallbacks.getMineLimit();
-        mapData = new MapData();
-        System.out.println("mapwidth pre: "+mapData.getMapWidth());
-        //if(!mapData.isMapSet()){//if saved map not present
-            System.out.println("isset");
-            mapData.setupXMLMap(mCallbacks.getResources().getIntArray(R.array.mapSize),
-                    mCallbacks.getResources().getStringArray(mCallbacks.getMapId()));
-        //}
+        mineCount = levelInfo.mineLimit;
+        mapData = new MapData(levelInfo.mapData);
+        //mapData.setupXMLMap(mCallbacks.getResources().getIntArray(R.array.mapSize),
+       // 		mCallbacks.getResources().getStringArray(mCallbacks.getMapId()));
         System.out.println("mapwidth post: "+mapData.getMapWidth());
         gameState = GameStates.START_MOVE;
     }
@@ -256,8 +253,7 @@ public class GameLogic implements TileView.GameLogicCallbacks
         }
     }
     public void callLevelCompleteDialog(){
-        int bestScore = mCallbacks.getLevelBestScore();
-        boolean newHighScore = (bestScore<score);
+        boolean newHighScore = (levelInfo.bestScore<score);
         //current score is only stored in db if newHighScore is true
         mCallbacks.showLevelCompleteDialog(newHighScore, score);
     }

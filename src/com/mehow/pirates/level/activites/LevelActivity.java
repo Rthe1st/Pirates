@@ -9,8 +9,9 @@ import android.support.v4.app.FragmentActivity;
 import android.view.View;
 
 import com.mehow.pirates.Consts;
+import com.mehow.pirates.LevelInfo;
 import com.mehow.pirates.R;
-import com.mehow.pirates.database.DefaultLevelDatabaseUIFunctions;
+import com.mehow.pirates.database.DatabaseHelper;
 import com.mehow.pirates.level.GameLogic;
 import com.mehow.pirates.level.TileView;
 import com.mehow.pirates.level.fragments.MapLeftOptions;
@@ -35,7 +36,7 @@ public class LevelActivity extends FragmentActivity
 	
 	private int mapId;
 	private int mapNum;
-	private DefaultLevelDatabaseUIFunctions dbUi;
+	private DatabaseHelper databaseHelper;
 	TileView tileView;
 	//used to display tutorial only if not restarting
 	//intialy always true, gets changed soon as read by start()
@@ -56,11 +57,12 @@ public class LevelActivity extends FragmentActivity
     	mapNum = userChoice.getIntExtra(MenuActivity.MAP_CHOICE_EXTRA, -1);
     	String xmlMapping = "level"+mapNum;
         mapId = this.getResources().getIdentifier(xmlMapping, "array", "com.mehow.pirates");
-        dbUi = new DefaultLevelDatabaseUIFunctions(this, null);
+        databaseHelper = DatabaseHelper.getInstance(this);
+        LevelInfo levelInfo = databaseHelper.levelsTable.getLevelInfo(mapNum);
         if(savedInstanceState!=null){
         	gameLogic = new GameLogic(this, savedInstanceState.getBundle("GAME_LOGIC"));
         }else{
-        	gameLogic = new GameLogic(this);
+        	gameLogic = new GameLogic(this, levelInfo);
         }
         //---------
         Configuration config = getResources().getConfiguration();
@@ -85,7 +87,8 @@ public class LevelActivity extends FragmentActivity
     @Override
     public void onStop(){
     	super.onStop();
-    	dbUi.closeDb();
+    	//not closing may be bad practie
+    	//databaseHelper.close();
     }
     @Override
     public void onResume(){
@@ -115,17 +118,9 @@ public class LevelActivity extends FragmentActivity
     }
     @Override
     public void submitScore(int newScore, String playerName){
-        dbUi.newBestScore(mapNum, newScore, playerName);
+        databaseHelper.levelsTable.newBestScore(mapNum, newScore, playerName);
         DialogFragment levelCompleteDialog = LevelCompleteDialog.newInstance(newScore);
         levelCompleteDialog.show(getSupportFragmentManager(), "levelCompleteDialog");
-    }
-    @Override
-    public int getMineLimit(){
-        return dbUi.getMineLimit(mapNum);
-    }
-    @Override
-    public int getLevelBestScore(){
-        return dbUi.getLevelBestScore(mapNum);
     }
     @Override
     public boolean isMaxLevel(){
@@ -151,8 +146,7 @@ public class LevelActivity extends FragmentActivity
 
     public void setHighscoreDisplay(){
     	MapLeftOptions leftOpFrag = (MapLeftOptions)getSupportFragmentManager().findFragmentById(R.id.mapLeftOptions);
-    	int highscore = dbUi.getLevelBestScore(mapNum);
-    	leftOpFrag.setHighscoreDisplay(highscore);
+    	leftOpFrag.setHighscoreDisplay(gameLogic.levelInfo.bestScore);
     }
 
     @Override

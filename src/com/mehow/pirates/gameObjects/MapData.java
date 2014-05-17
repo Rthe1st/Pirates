@@ -1,7 +1,6 @@
 package com.mehow.pirates.gameObjects;
 
 import java.util.ArrayList;
-import java.util.TreeMap;
 
 import android.os.Bundle;
 
@@ -27,8 +26,6 @@ public class MapData implements PathAlgorithms.Callbacks {
 	private int mapWidth;
 	private int mapHeight;
 
-	private boolean isMapSet;
-
 	// instead of being public, create a gameObject enum, use as key in hashmap
 	// with these
 	// public HashMap<GameObjectTypes, TreeMap<Cords, GameObject>> gameObjects;
@@ -44,22 +41,93 @@ public class MapData implements PathAlgorithms.Callbacks {
 
 	public GameObjectMap<Mine> mineMap;
 
-	public MapData() {
-		// why is map init not here?
+	public MapData(String mapData) {
+		enemyMap = new GameObjectMap<Enemy>();
+		tileMap = new GameObjectMap<Tile>();
+		shipMap = new GameObjectMap<Ship>();
+		mineMap = new GameObjectMap<Mine>();
+		interpretMapData(mapData);
+	}
+	
+	//looks for string in format row|row|row
+	//row := tile,tile,...
+	//tile := gameObjectCode:gameObjectCode:...
+	private void interpretMapData(String mapData){
+		int x = 0;
+		int y = 0;
+		String gameObjectCode = "";
+		for(int i=0;i<mapData.length();i++){
+			switch(mapData.charAt(i)){
+			case ':'://gameObject break
+				interpretGameObjectCodes(new Cords(x,y), gameObjectCode);
+				gameObjectCode = "";
+				break;
+			case ','://column break
+				interpretGameObjectCodes(new Cords(x,y), gameObjectCode);
+				gameObjectCode = "";
+				x += 1;
+				break;
+			case '|'://row break
+				interpretGameObjectCodes(new Cords(x,y), gameObjectCode);
+				gameObjectCode = "";
+				x = 0;
+				y += 1;
+				break;
+			default:
+				gameObjectCode += mapData.charAt(i);
+			}
+		}
+		mapWidth = x;
+		mapHeight = y;
 	}
 
+	// const for location in tileTypes of different bitmaps
+	public static final String SEA_TILE = "0";
+	public static final String ROCK_TILE = "1";
+	public static final String SHIP_TILE = "2";
+	public static final String MINE_TILE = "3";
+	public static final String VENEMY_SHIP = "4";
+	public static final String LEVEL_GOAL = "5";
+	public static final String HENEMY_SHIP = "6";
+	public static final String AENEMY_SHIP = "7";
+	
+	private void interpretGameObjectCodes(Cords cords, String gameObjectCode){
+		//to do: putin checks for bad maps, i.e. throw if a gameObject Map puts 2 objects on the same key
+		if(gameObjectCode.equals(SHIP_TILE)){
+			shipMap.put(cords, new Ship(cords, this));
+			//tileMap.put(cords, new SeaTile(cords));
+		}else if(gameObjectCode.equals(VENEMY_SHIP)){
+			System.out.println("venemy added");
+			enemyMap.put(cords, new Venemy(cords,
+					(PathAlgorithms.Callbacks) this));
+			//tTileMap.put(cords, new SeaTile(cords));
+		}else if(gameObjectCode.equals(HENEMY_SHIP)){
+			System.out.println("henemy added");
+			enemyMap.put(cords, new Henemy(cords,
+					(PathAlgorithms.Callbacks) this));
+			//tTileMap.put(cords, new SeaTile(cords));
+		}else if(gameObjectCode.equals(AENEMY_SHIP)){
+			System.out.println("aenemy added");
+			enemyMap.put(cords, new Aenemy(cords,
+					(PathAlgorithms.Callbacks) this));
+			//tTileMap.put(cords, new SeaTile(cords));
+		}else if(gameObjectCode.equals(ROCK_TILE)){
+			tileMap.put(cords, new RockTile(cords));
+		}else if(gameObjectCode.equals(SEA_TILE)){
+			tileMap.put(cords, new SeaTile(cords));
+		}else if(gameObjectCode.equals(LEVEL_GOAL)){
+			tileMap.put(cords, new GoalTile(cords));
+		}else{
+			throw new RuntimeException(
+					"Unrecognised number as GameObjectCode when loading map xml "+gameObjectCode);
+		}
+	}
+	
 	public MapData(Bundle bundle) {
 		loadState(bundle);
 	}
 
 	public void loadState(Bundle bundle) {
-		/*mapWidth = bundle.getInt("MAP_WIDTH");
-		mapHeight = bundle.getInt("MAP_HEIGHT");
-		mapData = inflateMap(bundle.getIntArray("FLAT_MAP"));
-		ship.loadState(bundle.getBundle("SHIP"));
-		mines.loadState(bundle.getBundle("MINES"));
-		enemyContainer.inflateEnemies(bundle.getBundle("FLAT_ENEMIES"));
-	*/
 		enemyMap = (GameObjectMap<Enemy>)bundle.getSerializable("ENEMY_MAP");
 		tileMap = (GameObjectMap<Tile>)bundle.getSerializable("TILE_MAP");
 		shipMap = (GameObjectMap<Ship>)bundle.getSerializable("SHIP_MAP");
@@ -70,13 +138,6 @@ public class MapData implements PathAlgorithms.Callbacks {
 
 	public Bundle saveState() {
 		Bundle bundle = new Bundle();
-		/*
-		 * bundle.putIntArray("FLAT_MAP", flattenMap());
-		 * bundle.putBundle("SHIP", ship.shipSaveState());
-		 * bundle.putInt("MAP_WIDTH", mapWidth); bundle.putInt("MAP_HEIGHT",
-		 * mapHeight); bundle.putBundle("MINES",mines.saveState());
-		 * bundle.putBundle("FLAT_ENEMIES", enemyContainer.flattenEnemies());
-		 */
 		bundle.putSerializable("ENEMY_MAP", enemyMap);
 		bundle.putSerializable("SHIP_MAP", shipMap);
 		bundle.putSerializable("MINE_MAP", mineMap);
@@ -84,25 +145,6 @@ public class MapData implements PathAlgorithms.Callbacks {
 		bundle.putInt("MAP_WIDTH", mapWidth);
 		bundle.putInt("MAP_HEIGHT", mapHeight);
 		return bundle;
-	}
-
-	public void setupBlankMap(int[] levelSize) {
-		mapWidth = levelSize[0];
-		mapHeight = levelSize[1];
-		isMapSet = true;
-		// mapData = new int[mapWidth][mapHeight];
-	}
-
-	public void setUpSavedMap(int[] flatMap) {
-
-	}
-
-	public void setupXMLMap(int[] levelSize, String[] levelData) {
-		mapWidth = levelSize[0];
-		mapHeight = levelSize[1];
-		isMapSet = true;
-		// mapData = new int[mapWidth][mapHeight];
-		loadXMLmap(levelData);
 	}
 
 	// this should replace isSpaceOccupied, allowing "logic" to be down inside
@@ -124,10 +166,6 @@ public class MapData implements PathAlgorithms.Callbacks {
 		return mapHeight;
 	}
 
-	public boolean isMapSet() {
-		return isMapSet;
-	}
-
 	// setters
 	public void setCordTile(Cords cord, Tile tile) {
 		if (cord.x >= 0 && cord.y >= 0 && cord.x < getMapWidth()
@@ -139,81 +177,12 @@ public class MapData implements PathAlgorithms.Callbacks {
 		}
 	}
 
-	// const for location in tileTypes of different bitmaps
-	public static final int SEA_TILE = 0;
-	public static final int ROCK_TILE = 1;
-	public static final int SHIP_TILE = 2;
-	public static final int MINE_TILE = 3;
-	public static final int VENEMY_SHIP = 4;
-	public static final int LEVEL_GOAL = 5;
-	public static final int HENEMY_SHIP = 6;
-	public static final int AENEMY_SHIP = 7;
-
-	// breaks if wrong map size in xml
-	// also stick in stuff for bad maps (<1 ship extra)
-	// little weird because x and y are flipped to make designing maps easier
-	public void loadXMLmap(String[] levelData) {
-		// set up all object lists
-		TreeMap<Cords, Tile> tTileMap = new TreeMap<Cords, Tile>();
-		TreeMap<Cords, Enemy> tEnemyMap = new TreeMap<Cords, Enemy>();
-		TreeMap<Cords, Ship> tShipMap = new TreeMap<Cords, Ship>();
-		TreeMap<Cords, Mine> tMineMap = new TreeMap<Cords, Mine>();
-		System.out.println("xml loading");
-		String[] columnData;
-		int tileType;
-		for (int y = 0; y < getMapWidth(); y++) {
-			columnData = levelData[y].split(",");
-			for (int x = 0; x < getMapHeight(); x++) {
-				Cords cords = new Cords(x, y);
-				tileType = Integer.parseInt(columnData[x]);
-				switch (tileType) {
-				case SHIP_TILE:
-					tShipMap.put(cords, new Ship(cords, this));
-					tTileMap.put(cords, new SeaTile(cords));
-					break;
-				case VENEMY_SHIP:
-					System.out.println("venemy added");
-					tEnemyMap.put(cords, new Venemy(cords,
-							(PathAlgorithms.Callbacks) this));
-					tTileMap.put(cords, new SeaTile(cords));
-					break;
-				case HENEMY_SHIP:
-					System.out.println("henemy added");
-					tEnemyMap.put(cords, new Henemy(cords,
-							(PathAlgorithms.Callbacks) this));
-					tTileMap.put(cords, new SeaTile(cords));
-					break;
-				case AENEMY_SHIP:
-					System.out.println("aenemy added");
-					tEnemyMap.put(cords, new Aenemy(cords,
-							(PathAlgorithms.Callbacks) this));
-					tTileMap.put(cords, new SeaTile(cords));
-					break;
-				case ROCK_TILE:
-					tTileMap.put(cords, new RockTile(cords));
-					break;
-				case SEA_TILE:
-					tTileMap.put(cords, new SeaTile(cords));
-					break;
-				case LEVEL_GOAL:
-					tTileMap.put(cords, new GoalTile(cords));
-					break;
-				default:
-					throw new RuntimeException(
-							"Unrecognised number as GameObject when loading map xml");
-				}
-			}
-		}
-		tileMap = new GameObjectMap<Tile>(tTileMap);
-		enemyMap = new GameObjectMap<Enemy>(tEnemyMap);
-		mineMap = new GameObjectMap<Mine>(tMineMap);
-		shipMap = new GameObjectMap<Ship>(tShipMap);
-	}
-
 	// make sure each enemy:
 	// starts turn
 	// records each step
 	// ends turn
+	
+	//MOVE INTO GAMELOGIC?
 	public void enemyMoveAlgorithm() {
 		boolean enemyMoved;
 		boolean gameOver = false;

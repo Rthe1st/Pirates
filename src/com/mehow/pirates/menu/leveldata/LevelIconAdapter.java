@@ -39,7 +39,7 @@ public class LevelIconAdapter extends BaseAdapter{
 		//System.out.println("getView in adapter-------------------------");
 	//	System.out.println("getviewmapno: "+mapNo);
         TextView textView = setUpTextView(mapNo,context);
-        Achievements levelAchievement = ((MenuActivity)context).dbUi.getLevelAchievment(mapNo+1);//+1 cause db is 1 based, grid is 0 based
+        Achievements levelAchievement = ((MenuActivity)context).databaseHelper.levelsTable.getLevelAchievment(mapNo+1);//+1 cause db is 1 based, grid is 0 based
         if (convertView == null ) {  // if it's not recycled, initialize some attributes
             if(levelIconDataArray.getCurHighlighted() == mapNo){
            // 	System.out.println("prev null highlight maps: "+mapNo);
