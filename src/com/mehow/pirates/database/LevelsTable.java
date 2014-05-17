@@ -8,7 +8,6 @@ import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
 import com.mehow.pirates.Consts;
-import com.mehow.pirates.Consts.Achievements;
 import com.mehow.pirates.LevelInfo;
 
 public class LevelsTable implements DataAccess{
@@ -25,11 +24,35 @@ public class LevelsTable implements DataAccess{
 	public static final String MAP = "mapdata";
 	public static final String TYPE ="type";
 	
+	public static  enum Achievement {
+	    GOLD, SILVER, BRONZE, NONE, NOT_COMP
+	}
+	
+	public static Achievement calculateAchievement(int bestScore, int bronzeScore, int silverScore, int goldScore){
+		if(bestScore == -1){
+			return Achievement.NOT_COMP;
+		}
+		if(bestScore < bronzeScore){
+			return Achievement.NONE;
+		}else if(bestScore < silverScore){
+			return Achievement.BRONZE;
+		}else if(bestScore < goldScore){
+			return Achievement.SILVER;
+		}else{
+			return Achievement.GOLD;
+		}
+	}
+	
+	public static enum LevelTypes {
+		PRE_MADE
+		, CUSTOM
+	}
+	
 	public static final String CREATE_TABLE = "create table "+TABLENAME+"("
 			+ID+" integer primary key autoincrement, "+NAME+" VARCHAR(20), "
 			+BESTSCORE+" integer, "+BESTPLAYER+" VARCHAR(20), "+MINELIMIT+" integer, "
 			+GOLDSCORE+" integer, "+SILVERSCORE+" integer, "+BRONZESCORE+" integer, "
-			+DIFFICULTY+" integer, "+MAP+" TEXT )";
+			+DIFFICULTY+" integer, "+MAP+" TEXT, "+TYPE+" VARCHAR(20)"+")";
 	
 	private DataAccess.Callbacks callbacks;
 	
@@ -81,6 +104,7 @@ public class LevelsTable implements DataAccess{
 			levelDataFormatted = levelDataFormatted.substring(0, levelDataFormatted.length()-2);
 			rowData.put(MAP, levelDataFormatted);
 			Log.i("LevelsTable", "mapdata "+rowData.getAsString(MAP));
+			rowData.put(TYPE, LevelTypes.PRE_MADE.toString());
 			database.insert(TABLENAME, null, rowData);
 			rowData.clear();
 		}
@@ -90,8 +114,20 @@ public class LevelsTable implements DataAccess{
 		database.execSQL("DROP TABLE IF EXISTS "+TABLENAME);
 	}
 
+	
+	public LevelInfo[] getLevelInfos(LevelTypes type){
+		String where = TYPE+"='"+LevelTypes.PRE_MADE+"'";
+		return innerGetLevelInfos(where);
+	}
+	
 	public LevelInfo getLevelInfo(int levelNum){
 		Log.i("LevelsTable", "getLevelInfo for "+levelNum);
+		String where = ID+"="+levelNum;
+		LevelInfo[] levelInfos = innerGetLevelInfos(where);
+        return levelInfos[0];
+	}
+	
+	private LevelInfo[] innerGetLevelInfos(String where){
 		SQLiteDatabase database = callbacks.getDatabase();
         String[] columns = new String[]{
         		BESTPLAYER
@@ -102,25 +138,29 @@ public class LevelsTable implements DataAccess{
         		, GOLDSCORE
         		, SILVERSCORE
         		, BRONZESCORE
-        		, MAP 
+        		, MAP
         		};
-        String where = ID+"="+levelNum;
         Cursor cursor = database.query(TABLENAME, columns, where, null, null, null, null);
         cursor.moveToFirst();
-        LevelInfo levelInfo = new LevelInfo(
-        		  cursor.getString(cursor.getColumnIndexOrThrow(NAME))
-        		, cursor.getInt(cursor.getColumnIndexOrThrow(DIFFICULTY))
-        		, cursor.getInt(cursor.getColumnIndexOrThrow(MINELIMIT))
-        		, cursor.getInt(cursor.getColumnIndexOrThrow(BESTSCORE))
-        		, cursor.getString(cursor.getColumnIndexOrThrow(BESTPLAYER))
-        		, cursor.getInt(cursor.getColumnIndexOrThrow(GOLDSCORE))
-        		, cursor.getInt(cursor.getColumnIndexOrThrow(SILVERSCORE))
-        		, cursor.getInt(cursor.getColumnIndexOrThrow(BRONZESCORE))
-        		, cursor.getString(cursor.getColumnIndexOrThrow(MAP))
-        		); 
+        LevelInfo[] levelInfos = new LevelInfo[cursor.getCount()];
+        while(!cursor.isAfterLast()){
+        	levelInfos[cursor.getPosition()] = new LevelInfo(
+          		  cursor.getString(cursor.getColumnIndexOrThrow(NAME))
+          		, cursor.getInt(cursor.getColumnIndexOrThrow(DIFFICULTY))
+          		, cursor.getInt(cursor.getColumnIndexOrThrow(MINELIMIT))
+          		, cursor.getInt(cursor.getColumnIndexOrThrow(BESTSCORE))
+          		, cursor.getString(cursor.getColumnIndexOrThrow(BESTPLAYER))
+          		, cursor.getInt(cursor.getColumnIndexOrThrow(GOLDSCORE))
+          		, cursor.getInt(cursor.getColumnIndexOrThrow(SILVERSCORE))
+          		, cursor.getInt(cursor.getColumnIndexOrThrow(BRONZESCORE))
+          		, cursor.getString(cursor.getColumnIndexOrThrow(MAP))
+          		);
+        	cursor.moveToNext();
+        }
         cursor.close();
-        return levelInfo;
+        return levelInfos;
 	}
+	
 	public void clearScores(){
 		SQLiteDatabase database = callbacks.getDatabase();
 		ContentValues updateValues = new ContentValues();
@@ -128,7 +168,8 @@ public class LevelsTable implements DataAccess{
 		updateValues.put(BESTPLAYER, "");
 		database.update(TABLENAME, updateValues, null, null);
 	}
-	public Achievements getLevelAchievment(int levelNum){
+	
+	public Achievement getLevelAchievment(int levelNum){
 		SQLiteDatabase database = callbacks.getDatabase();
 		String[] columns = new String[]{
 				BESTSCORE
@@ -145,19 +186,17 @@ public class LevelsTable implements DataAccess{
 		int bronzeScore = cursor.getInt(cursor.getColumnIndexOrThrow(BRONZESCORE));
 		int bestScore = cursor.getInt(cursor.getColumnIndexOrThrow(BESTSCORE));
 		cursor.close();
-		//System.out.println("goldscore: "+goldScore);
-	//	System.out.println("bestScore: "+bestScore);
 		if(bestScore == -1){
-			return Achievements.NOT_COMP;
+			return Achievement.NOT_COMP;
 		}
 		if(bestScore < bronzeScore){
-			return Achievements.NONE;
+			return Achievement.NONE;
 		}else if(bestScore < silverScore){
-			return Achievements.BRONZE;
+			return Achievement.BRONZE;
 		}else if(bestScore < goldScore){
-			return Achievements.SILVER;
+			return Achievement.SILVER;
 		}else{
-			return Achievements.GOLD;
+			return Achievement.GOLD;
 		}
 	}
 	public void newBestScore(int levelNum, int newScore, String playerName){

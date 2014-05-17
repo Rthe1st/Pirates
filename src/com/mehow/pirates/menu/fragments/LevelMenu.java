@@ -11,7 +11,9 @@ import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.GridView;
 
+import com.mehow.pirates.LevelInfo;
 import com.mehow.pirates.R;
+import com.mehow.pirates.database.LevelsTable;
 import com.mehow.pirates.menu.activities.MenuActivity;
 import com.mehow.pirates.menu.leveldata.LevelIconAdapter;
 import com.mehow.pirates.menu.leveldata.LevelIconDataArray;
@@ -21,7 +23,6 @@ import com.mehow.pirates.menu.leveldata.LevelInfoLayout;
 //BECAUSE ONCREATEVIEW NOT CALLED WHEN ROTATED, ONLY WHEN MINIMISED ETC
 //fix dis
 public class LevelMenu extends Fragment{
-	int lastSelectedId = -1;
     GridView gridView;
     LevelInfoLayout levelInfo;
     LevelIconAdapter myAdapter;
@@ -31,6 +32,7 @@ public class LevelMenu extends Fragment{
         public void startLevel(View view);
         public int getMapChoice();
         public void setMapChoice(int mapChoice);
+        public LevelInfo[] getLevelInfos(LevelsTable.LevelTypes type);
     }
     Callbacks mCallbacks;
 
@@ -51,7 +53,7 @@ public class LevelMenu extends Fragment{
         levelInfo = (LevelInfoLayout)view.findViewById(R.id.levelInfo);
         gridView = (GridView)view.findViewById(R.id.levelIcons);
         
-        myAdapter = new LevelIconAdapter(view.getContext());
+        myAdapter = new LevelIconAdapter(mCallbacks.getLevelInfos(LevelsTable.LevelTypes.PRE_MADE));
 
         gridView.setAdapter(myAdapter); // uses the view to get the context instead of getActivity().
         gridView.setOnItemClickListener(new OnItemClickListener(){
@@ -81,11 +83,11 @@ public class LevelMenu extends Fragment{
 	}
 	public void gridViewItemClickListener(AdapterView<?> parent, 
             View v, int position, long id){
-        		levelIconDataArray.setCurHighlighted(position);
+        		myAdapter.highLightedInfo.setCurHighlighted(position);
         		myAdapter.notifyDataSetChanged();
                 mCallbacks.setMapChoice(position+1);
                 //call database
                 MenuActivity activity = ((MenuActivity)parent.getContext());
-                levelInfo.changeInfo(activity.databaseHelper.levelsTable.getLevelInfo(position+1));
+                levelInfo.changeInfo(myAdapter.getItem(position));
 	}
 }

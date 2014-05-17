@@ -7,55 +7,69 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 
-import com.mehow.pirates.Consts;
-import com.mehow.pirates.Consts.Achievements;
+import com.mehow.pirates.LevelInfo;
 import com.mehow.pirates.R;
-import com.mehow.pirates.menu.activities.MenuActivity;
-import com.mehow.pirates.menu.fragments.LevelMenu;
+import com.mehow.pirates.database.LevelsTable;
 
 public class LevelIconAdapter extends BaseAdapter{
 	
-	private LevelIconDataArray levelIconDataArray;
-	private Context context;
+	public HightlightedInfo highLightedInfo;
 	
-	public LevelIconAdapter (Context tempContext){
-		context = tempContext;
-		LevelMenu levelMenu = (LevelMenu) ((MenuActivity)context).getContentFrag();
-		this.levelIconDataArray = levelMenu.getLevelIconDataArray();
+	public static class HightlightedInfo {
+	    private int lastHighlighted = -1;
+	    private int curHighlighted = -1;
+
+	    public HightlightedInfo() {}
+	    
+	    public void setCurHighlighted(int i){
+	    	if(curHighlighted != -1){
+	    		setLastHighlighted(curHighlighted);
+	    	}
+	    	curHighlighted = i;
+	    }
+	    public int getCurHighlighted(){
+	    	return curHighlighted;
+	    }
+	    public int getLastHighlighted(){
+	    	return lastHighlighted;
+	    }
+
+	    private void setLastHighlighted(int i){
+	    	lastHighlighted = i;
+	    }
+	}
+	
+	private LevelInfo[] levelInfos;
+	
+	public LevelIconAdapter (LevelInfo[] tLevelInfos){
+		this.highLightedInfo = new HightlightedInfo();
+		levelInfos = tLevelInfos;
 	}
 	public int getCount() {
-		return Consts.noOfMaps;
+		return levelInfos.length;
 	}
-	//no needed
-	public Object getItem(int mapNo) {
-		return 0;
+
+	public LevelInfo getItem(int mapNo) {
+		return levelInfos[mapNo];
 	}
 	//not needed
 	public long getItemId(int mapNo) {
 		return 0;
 	}
-	//INEFFICENT CAUSE DOSNT USE CONVERTVIEW, FIX DISS
+
 	public View getView(int mapNo, View convertView, ViewGroup parent) {
-		//System.out.println("getView in adapter-------------------------");
-	//	System.out.println("getviewmapno: "+mapNo);
+		if(convertView != null && mapNo != highLightedInfo.getCurHighlighted() && mapNo != highLightedInfo.getLastHighlighted()){
+			return convertView;
+		}
+		Context context = parent.getContext();
         TextView textView = setUpTextView(mapNo,context);
-        Achievements levelAchievement = ((MenuActivity)context).databaseHelper.levelsTable.getLevelAchievment(mapNo+1);//+1 cause db is 1 based, grid is 0 based
-        if (convertView == null ) {  // if it's not recycled, initialize some attributes
-            if(levelIconDataArray.getCurHighlighted() == mapNo){
-           // 	System.out.println("prev null highlight maps: "+mapNo);
-            	textView.setBackgroundResource(highlightDrawType(levelAchievement));
-            }else{
-            	textView.setBackgroundResource(nonHighlightDrawType(levelAchievement));
-            //	System.out.println("prev null nonhighlight maps: "+mapNo);
-            }
-        }else if(levelIconDataArray.getLastHighlighted() == mapNo) {
-       // 	System.out.println("notnull null lastHighlighted: "+mapNo);
-        	textView.setBackgroundResource(nonHighlightDrawType(levelAchievement));
-        }else if(levelIconDataArray.getCurHighlighted() == mapNo){
-       // 	System.out.println("not null curhighlighted maps: "+mapNo);
+        LevelsTable.Achievement levelAchievement = LevelsTable.calculateAchievement(levelInfos[mapNo].bestScore, levelInfos[mapNo].bronzeScore, levelInfos[mapNo].silverScore, levelInfos[mapNo].goldScore);
+       if(highLightedInfo.getLastHighlighted() == mapNo) {
+    	   textView.setBackgroundResource(nonHighlightDrawType(levelAchievement));
+        }else if(highLightedInfo.getCurHighlighted() == mapNo){
         	textView.setBackgroundResource(highlightDrawType(levelAchievement)); 	
         }else{
-        textView.setBackgroundResource(nonHighlightDrawType(levelAchievement));
+        	textView.setBackgroundResource(nonHighlightDrawType(levelAchievement));
         }
         return textView;
 	}
@@ -65,30 +79,30 @@ public class LevelIconAdapter extends BaseAdapter{
         textView.setText(Integer.toString(mapNo+1));
         return textView;
 	}
-	private int nonHighlightDrawType(Achievements levelAchievement){
+	private int nonHighlightDrawType(LevelsTable.Achievement levelAchievement){
     	int drawableId;
-		if(levelAchievement == Achievements.NOT_COMP){
+		if(levelAchievement == LevelsTable.Achievement.NOT_COMP){
     		drawableId = R.drawable.level_icon_not_comp;
-    	}else if(levelAchievement == Achievements.NONE){
+    	}else if(levelAchievement == LevelsTable.Achievement.NONE){
     		drawableId = R.drawable.level_icon_none;
-    	}else if(levelAchievement == Achievements.BRONZE){
+    	}else if(levelAchievement == LevelsTable.Achievement.BRONZE){
     		drawableId = R.drawable.level_icon_bronze;            	
-    	}else if(levelAchievement == Achievements.SILVER){
+    	}else if(levelAchievement == LevelsTable.Achievement.SILVER){
     		drawableId = R.drawable.level_icon_silver;
     	}else{
     		drawableId = R.drawable.level_icon_gold;
     	}
     	return drawableId;
 	}
-	private int highlightDrawType(Achievements levelAchievement){
+	private int highlightDrawType(LevelsTable.Achievement levelAchievement){
     	int drawableId;
-		if(levelAchievement == Achievements.NOT_COMP){
+		if(levelAchievement == LevelsTable.Achievement.NOT_COMP){
     		drawableId = R.drawable.level_icon_not_comp_highlight;
-    	}else if(levelAchievement == Achievements.NONE){
+    	}else if(levelAchievement == LevelsTable.Achievement.NONE){
     		drawableId = R.drawable.level_icon_none_highlight;
-    	}else if(levelAchievement == Achievements.BRONZE){
+    	}else if(levelAchievement == LevelsTable.Achievement.BRONZE){
     		drawableId = R.drawable.level_icon_bronze_highlight;            	
-    	}else if(levelAchievement == Achievements.SILVER){
+    	}else if(levelAchievement == LevelsTable.Achievement.SILVER){
     		drawableId = R.drawable.level_icon_silver_highlight;
     	}else{
     		drawableId = R.drawable.level_icon_gold_highlight;

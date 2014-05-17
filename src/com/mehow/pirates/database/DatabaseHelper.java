@@ -10,7 +10,7 @@ public class DatabaseHelper extends SQLiteOpenHelper implements DataAccess.Callb
 	
 	Context context;
 	private static String DATABASE_NAME = "game_database";
-	private static int DATABASE_VERSION = 4;
+	private static int DATABASE_VERSION = 2;
 	
 	public LevelsTable levelsTable;
 	

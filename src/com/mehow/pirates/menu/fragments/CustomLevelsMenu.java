@@ -18,7 +18,7 @@ public class CustomLevelsMenu extends Fragment{
         View view = inflater.inflate(R.layout.custom_levels_layout,container,false);
         final LevelInfoLayout levelInfo = (LevelInfoLayout) view.findViewById(R.id.levelInfo);
         GridView gridView = (GridView) view.findViewById(R.id.levelIcons);
-        gridView.setAdapter(new LevelIconAdapter(view.getContext())); // uses the view to get the context instead of getActivity().
+        //gridView.setAdapter(new LevelIconAdapter(view.getContext())); // uses the view to get the context instead of getActivity().
     /*    gridView.setOnItemClickListener(new OnItemClickListener(){
         public void onItemClick(AdapterView<?> parent, 
             View v, int position, long id){                

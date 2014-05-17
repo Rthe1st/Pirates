@@ -8,8 +8,8 @@ public class LevelIconDataArray {
         super();
     }
     public void setCurHighlighted(int i){
-    	if(curHighlighted != i && curHighlighted != -1){
-     	setLastHighlighted(curHighlighted);
+    	if(curHighlighted != -1){
+    		setLastHighlighted(curHighlighted);
     	}
     	curHighlighted = i;
     }

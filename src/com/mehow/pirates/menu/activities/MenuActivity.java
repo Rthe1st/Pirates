@@ -8,6 +8,7 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.view.View;
 
+import com.mehow.pirates.LevelInfo;
 import com.mehow.pirates.R;
 import com.mehow.pirates.level.activites.LevelActivity;
 import com.mehow.pirates.menu.fragments.LevelMenu;
@@ -16,6 +17,7 @@ import com.mehow.pirates.menu.fragments.RandomLevelMenu;
 import com.mehow.pirates.menu.fragments.SettingsMenu;
 import com.mehow.pirates.menu.fragments.StatsMenu;
 import com.mehow.pirates.database.DatabaseHelper;
+import com.mehow.pirates.database.LevelsTable.LevelTypes;
 
 
 // reflection could be used here, pass in a fragment class and
@@ -33,7 +35,6 @@ public class MenuActivity extends FragmentActivity implements
 
 	public static final String MAP_CHOICE_EXTRA = "MAP_CHOICE";
 	public int mapChoice;// level currently selected
-	//public DefaultLevelDatabaseUIFunctions dbUi;
 	public DatabaseHelper databaseHelper;
 	
 	// public static final int MAIN_ACTIVITY_RC = 1;//RC stands for request code
@@ -217,6 +218,11 @@ public class MenuActivity extends FragmentActivity implements
 	@Override
 	public void setMapChoice(int tMapChoice) {
 		mapChoice = tMapChoice;
+	}
+
+	@Override
+	public LevelInfo[] getLevelInfos(LevelTypes type) {
+		return databaseHelper.levelsTable.getLevelInfos(type);
 	}
 
 	/*
