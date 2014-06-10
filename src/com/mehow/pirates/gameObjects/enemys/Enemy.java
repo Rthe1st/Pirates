@@ -2,14 +2,11 @@ package com.mehow.pirates.gameObjects.enemys;
 
 import java.util.ArrayList;
 
-import android.os.Bundle;
-
 import com.mehow.pirates.Cords;
 import com.mehow.pirates.gameObjects.CordData;
 import com.mehow.pirates.gameObjects.GameObject;
-import com.mehow.pirates.gameObjects.GoalTile;
-import com.mehow.pirates.gameObjects.PathAlgorithms;
-import com.mehow.pirates.gameObjects.SeaTile;
+import com.mehow.pirates.gameObjects.Goal;
+import com.mehow.pirates.gameObjects.Sea;
 
 abstract public class Enemy extends GameObject{
     protected static int defNumOfMovesAllowed = 2;
@@ -19,9 +16,13 @@ abstract public class Enemy extends GameObject{
     protected ArrayList<Cords> previousCords = new ArrayList<Cords>();
 
     //this is hackish, really should make use of a member var EnemyPathAlgs
-    protected final PathAlgorithms.Callbacks callbacks;
+    protected final Callbacks callbacks;
+    
+    public interface Callbacks {
+        public CordData getInfoOnCords(Cords cord);
+    }
 
-    public Enemy(Cords startCords, int tempNumOfMovesAllowed, PathAlgorithms.Callbacks tCallbacks) {
+    public Enemy(Cords startCords, int tempNumOfMovesAllowed, Callbacks tCallbacks) {
         super(startCords);
     	previousCords = new ArrayList<Cords>(0);
         numOfMovesAllowed = tempNumOfMovesAllowed;
@@ -29,7 +30,7 @@ abstract public class Enemy extends GameObject{
         callbacks = tCallbacks;
     }
 
-    public Enemy(Cords startCords, PathAlgorithms.Callbacks tCallbacks) {
+    public Enemy(Cords startCords, Callbacks tCallbacks) {
         super(startCords);
     	previousCords = new ArrayList<Cords>(0);
         numOfMovesAllowed = defNumOfMovesAllowed;
@@ -38,13 +39,13 @@ abstract public class Enemy extends GameObject{
     }
 
     abstract public Cords computeMoveStep(Cords shipCords);
-
+    
     //--------------------
     //used in child compute step functions
     protected Cords attemptXmove(Cords oldCords, int shipX) {
-        if (shipX < oldCords.x && isValidMove(new Cords(oldCords.x - 1, oldCords.y), callbacks)) {
+        if (shipX < oldCords.x && isValidMove(callbacks.getInfoOnCords(new Cords(oldCords.x-1, oldCords.y)))) {
             return new Cords(oldCords.x - 1, oldCords.y);
-        } else if (shipX > oldCords.x && isValidMove(new Cords(oldCords.x + 1, oldCords.y), callbacks)) {
+        } else if (shipX > oldCords.x && isValidMove(callbacks.getInfoOnCords(new Cords(oldCords.x+1, oldCords.y)))) {
             return new Cords(oldCords.x + 1, oldCords.y);
         } else {
             return oldCords;
@@ -52,9 +53,9 @@ abstract public class Enemy extends GameObject{
     }
 
     protected Cords attemptYmove(Cords oldCords, int shipY) {
-        if (shipY < oldCords.y && isValidMove(new Cords(oldCords.x, oldCords.y - 1), callbacks)) {
+        if (shipY < oldCords.y && isValidMove(callbacks.getInfoOnCords(new Cords(oldCords.x, oldCords.y-1)))) {
             return new Cords(oldCords.x, oldCords.y - 1);
-        } else if (shipY > oldCords.y && isValidMove(new Cords(oldCords.x, oldCords.y + 1), callbacks)) {
+        } else if (shipY > oldCords.y && isValidMove(callbacks.getInfoOnCords(new Cords(oldCords.x, oldCords.y+1)))) {
             return new Cords(oldCords.x, oldCords.y + 1);
         } else {
             return oldCords;
@@ -63,16 +64,12 @@ abstract public class Enemy extends GameObject{
 
     //------------------------------------
 
-    protected static boolean isValidMove(Cords cords, PathAlgorithms.Callbacks callbacks) {
-        CordData cordData = callbacks.getInfoOnCords(cords);
-        if (cordData.enemy != null
-                || cordData.mine != null) {
-            return false;
-        } else if (cordData.tile.getClass().equals(SeaTile.class)) {
+    public static boolean isValidMove(CordData cordData) {
+        boolean validTile = cordData.tile instanceof Sea || cordData.tile instanceof Goal;
+        boolean notOccupied = cordData.enemy == null && cordData.mine == null;
+        if (validTile && notOccupied) {
             return true;
-        } else if (cordData.tile instanceof GoalTile) {
-            return true;
-        } else {
+        }else{
             return false;
         }
     }

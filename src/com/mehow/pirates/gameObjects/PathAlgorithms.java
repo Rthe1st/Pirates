@@ -3,8 +3,6 @@ package com.mehow.pirates.gameObjects;
 import java.io.Serializable;
 import java.util.ArrayList;
 
-import android.os.Bundle;
-
 import com.mehow.pirates.Cords;
 
 public abstract class PathAlgorithms implements Serializable{
@@ -36,7 +34,7 @@ public abstract class PathAlgorithms implements Serializable{
 		return storedCords.size();
 	}
 	public ArrayList<Cords> getAllCords(){
-		return storedCords;//this should really make a copy
+		return storedCords;
 	}
     //used to display possible player movement
     //simulates every possible move, but stores resulting tiles without duplication.

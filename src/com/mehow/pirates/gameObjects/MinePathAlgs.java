@@ -14,7 +14,7 @@ public class MinePathAlgs extends PathAlgorithms{
         if(range > 0){
     		if(cordData.enemy == null
     				&& cordData.ship == null
-    				&& cordData.tile instanceof SeaTile
+    				&& cordData.tile instanceof Sea
     				&& cordData.mine == null){
     			if(!contains(cords)){
     			//	System.out.println("cord x: "+curX+" y: "+curY);

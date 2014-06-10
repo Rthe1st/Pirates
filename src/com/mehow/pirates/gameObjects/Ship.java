@@ -16,12 +16,18 @@ import com.mehow.pirates.R;
 
 public class Ship extends GameObject{
 
-    private final ShipPathAlgs shipPathAlgs;
+	public static final String ENCODE_VALUE = "2";
+	
+	private final ShipPathAlgs shipPathAlgs;
     private final MinePathAlgs minePathAlgs;
     
     private int moveRange = 3;
     private static int mineRange = 1;
-
+    
+    private boolean hasMoved;
+    
+    private boolean hasMined;
+    
     //animation&display
     private static Bitmap self;
     
@@ -29,7 +35,10 @@ public class Ship extends GameObject{
         super(cords);
         shipPathAlgs = new ShipPathAlgs(pathCallbacks);
         minePathAlgs = new MinePathAlgs(pathCallbacks);
+        hasMoved = true;
+        hasMined = true;
 	}
+    
     /*
         MOVEMENT
      */
@@ -49,6 +58,13 @@ public class Ship extends GameObject{
     }
     public boolean canMove(Cords cords){
         return shipPathAlgs.contains(cords);
+    }
+    
+    public static boolean isValidMove(CordData cordData){
+    	return cordData.enemy == null
+				&& cordData.ship == null
+				&& (cordData.tile instanceof Sea || cordData.tile instanceof Goal)
+				&& cordData.mine == null;
     }
     /*
         MINE MOVEMENT

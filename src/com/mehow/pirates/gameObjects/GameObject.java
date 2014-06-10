@@ -104,7 +104,7 @@ abstract public class GameObject implements Serializable{
     	float xOffset = calculateCanvasOffset(currentStep.startCords.x, currentStep.endCords.x, 0, drawArea.width());
     	float yOffset = calculateCanvasOffset(currentStep.startCords.y, currentStep.endCords.y, 0, drawArea.height());
     	//check this offsets in the right direction
-    	System.out.println("offset x: "+xOffset+" yoffset: "+yOffset);
+    	//System.out.println("offset x: "+xOffset+" yoffset: "+yOffset);
     	drawArea.offsetTo(xOffset, yOffset);
         canvas.drawBitmap(getSelf(), null, drawArea, getSelfPaint());
     }
@@ -117,7 +117,7 @@ abstract public class GameObject implements Serializable{
 		}else if(startPoint == endPoint){
 			animationOffset = 0;
 		}
-		System.out.println("startPoint: "+startPoint+" tileDim:"+tileDimension+" animationOffset: "+animationOffset);
+		//System.out.println("startPoint: "+startPoint+" tileDim:"+tileDimension+" animationOffset: "+animationOffset);
 		return (startPoint*tileDimension)+animationOffset;	
     }
 }

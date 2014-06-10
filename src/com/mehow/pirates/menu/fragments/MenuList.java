@@ -18,9 +18,7 @@ public class MenuList extends Fragment{
         public void levelsLayout(View view);
         public void randlevelLayout(View view);
         public void statsLayout(View view);
-        /*
         public void customLevelsLayout(View view);
-        */
     };
 
 	@Override

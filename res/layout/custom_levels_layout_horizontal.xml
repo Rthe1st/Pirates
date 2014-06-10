@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/levelsMenu"
+    android:layout_width="wrap_content"
+    android:layout_height="match_parent"
+    android:baselineAligned="false"
+    android:orientation="horizontal" >
+
+    <!-- height = 2 rows = rowHeight*2+vertSpace*1 -->
+    <!-- lol cant specify row height -->
+
+    <GridView
+        android:id="@+id/levelIcons"
+        android:layout_width="176dp"
+        android:layout_height="match_parent"
+        android:columnWidth="48dp"
+        android:gravity="center"
+        android:horizontalSpacing="8dp"
+        android:numColumns="auto_fit"
+        android:stretchMode="none"
+        android:verticalSpacing="8dp" />
+
+    <com.mehow.pirates.menu.leveldata.LevelInfoLayout
+        android:id="@+id/levelInfo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@id/levelIcons" >
+    </com.mehow.pirates.menu.leveldata.LevelInfoLayout>
+
+    <Button
+        android:id="@+id/edit"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/levelInfo"
+        android:layout_toRightOf="@id/levelIcons"
+        android:onClick="editLevel"
+        android:text="@string/editBtn" />
+
+    <ImageButton
+        android:id="@+id/play"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/levelInfo"
+        android:layout_toRightOf="@id/edit"
+        android:contentDescription="@string/playBtnDescription"
+        android:onClick="startLevel"
+        android:src="@drawable/play_button" />
+
+    <Button
+        android:id="@+id/create"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/edit"
+        android:layout_toRightOf="@id/levelIcons"
+        android:onClick="createLevel"
+        android:text="@string/createBtn" />
+
+    <Button
+        android:id="@+id/delete"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/play"
+        android:layout_toRightOf="@id/create"
+        android:onClick="deleteLevel"
+        android:text="@string/deleteBtn" />
+
+</RelativeLayout>

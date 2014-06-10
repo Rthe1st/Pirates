@@ -12,11 +12,13 @@ import com.mehow.pirates.gameObjects.PathAlgorithms;
 public class Henemy extends Enemy{
 	protected static int defNumOfMovesAllowed = 2;
 
+	public static final String ENCODE_VALUE = "6";
+	
 	//move horizontaly before vert
-	public Henemy(Cords cords, int tempNumOfMovesAllowed, PathAlgorithms.Callbacks tCallbacks) {
+	public Henemy(Cords cords, int tempNumOfMovesAllowed, Callbacks tCallbacks) {
 		super(cords, tempNumOfMovesAllowed, tCallbacks);
 	}
-	public Henemy(Cords cords, PathAlgorithms.Callbacks tCallbacks) {
+	public Henemy(Cords cords, Callbacks tCallbacks) {
 		super(cords, defNumOfMovesAllowed, tCallbacks);
 	}
 	public Cords computeMoveStep(Cords shipCords){

@@ -7,7 +7,6 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
-import com.mehow.pirates.Consts;
 import com.mehow.pirates.LevelInfo;
 
 public class LevelsTable implements DataAccess{
@@ -48,8 +47,9 @@ public class LevelsTable implements DataAccess{
 		, CUSTOM
 	}
 	
+	//todo make columns nullable
 	public static final String CREATE_TABLE = "create table "+TABLENAME+"("
-			+ID+" integer primary key autoincrement, "+NAME+" VARCHAR(20), "
+			+ID+" integer primary key, "+NAME+" VARCHAR(20), "
 			+BESTSCORE+" integer, "+BESTPLAYER+" VARCHAR(20), "+MINELIMIT+" integer, "
 			+GOLDSCORE+" integer, "+SILVERSCORE+" integer, "+BRONZESCORE+" integer, "
 			+DIFFICULTY+" integer, "+MAP+" TEXT, "+TYPE+" VARCHAR(20)"+")";
@@ -68,7 +68,7 @@ public class LevelsTable implements DataAccess{
 	//When customLevels has been set up, it may be better to loaded from some compressed binary format or such
 	protected void loadPresetXMLLevels(SQLiteDatabase database, Context context){
 		//System.out.println("ext");
-		int numOfLevels = Consts.noOfMaps;
+		int numOfLevels = 5;//number of levels in xml file
 		ContentValues rowData = new ContentValues();
 		for(int i=1;i<=numOfLevels;i++){
 			//load "meta data"
@@ -91,10 +91,12 @@ public class LevelsTable implements DataAccess{
 			Log.i("LevelsTable", "bronzescore "+rowData.getAsString(BRONZESCORE));
 			rowData.put(DIFFICULTY, levelInfoXML.getInt(4, -1));
 			Log.i("LevelsTable", "difficulty "+rowData.getAsString(DIFFICULTY));
+			rowData.put(MAP, levelInfoXML.getString(8));
+			Log.i("LevelsTable", "mapdata "+rowData.getAsString(MAP));
 			levelInfoXML.recycle();
 			//-----------------
 			//load actual map data
-			int levelDataResourceId = context.getResources().getIdentifier("level"+i, "array", "com.mehow.pirates");
+			/*int levelDataResourceId = context.getResources().getIdentifier("level"+i, "array", "com.mehow.pirates");
 			String[] levelData = context.getResources().getStringArray(levelDataResourceId);
 			String levelDataFormatted = "";
 			for(String row : levelData){
@@ -104,6 +106,7 @@ public class LevelsTable implements DataAccess{
 			levelDataFormatted = levelDataFormatted.substring(0, levelDataFormatted.length()-2);
 			rowData.put(MAP, levelDataFormatted);
 			Log.i("LevelsTable", "mapdata "+rowData.getAsString(MAP));
+			*/
 			rowData.put(TYPE, LevelTypes.PRE_MADE.toString());
 			database.insert(TABLENAME, null, rowData);
 			rowData.clear();
@@ -114,13 +117,12 @@ public class LevelsTable implements DataAccess{
 		database.execSQL("DROP TABLE IF EXISTS "+TABLENAME);
 	}
 
-	
 	public LevelInfo[] getLevelInfos(LevelTypes type){
-		String where = TYPE+"='"+LevelTypes.PRE_MADE+"'";
+		String where = TYPE+"='"+type+"'";
 		return innerGetLevelInfos(where);
 	}
 	
-	public LevelInfo getLevelInfo(int levelNum){
+	public LevelInfo getLevelInfo(long levelNum){
 		Log.i("LevelsTable", "getLevelInfo for "+levelNum);
 		String where = ID+"="+levelNum;
 		LevelInfo[] levelInfos = innerGetLevelInfos(where);
@@ -130,7 +132,8 @@ public class LevelsTable implements DataAccess{
 	private LevelInfo[] innerGetLevelInfos(String where){
 		SQLiteDatabase database = callbacks.getDatabase();
         String[] columns = new String[]{
-        		BESTPLAYER
+        		ID
+        		, BESTPLAYER
         		, BESTSCORE
         		, DIFFICULTY
         		, NAME
@@ -139,13 +142,15 @@ public class LevelsTable implements DataAccess{
         		, SILVERSCORE
         		, BRONZESCORE
         		, MAP
+        		, TYPE
         		};
         Cursor cursor = database.query(TABLENAME, columns, where, null, null, null, null);
         cursor.moveToFirst();
         LevelInfo[] levelInfos = new LevelInfo[cursor.getCount()];
         while(!cursor.isAfterLast()){
         	levelInfos[cursor.getPosition()] = new LevelInfo(
-          		  cursor.getString(cursor.getColumnIndexOrThrow(NAME))
+        		cursor.getInt(cursor.getColumnIndexOrThrow(ID))
+          		, cursor.getString(cursor.getColumnIndexOrThrow(NAME))
           		, cursor.getInt(cursor.getColumnIndexOrThrow(DIFFICULTY))
           		, cursor.getInt(cursor.getColumnIndexOrThrow(MINELIMIT))
           		, cursor.getInt(cursor.getColumnIndexOrThrow(BESTSCORE))
@@ -154,11 +159,23 @@ public class LevelsTable implements DataAccess{
           		, cursor.getInt(cursor.getColumnIndexOrThrow(SILVERSCORE))
           		, cursor.getInt(cursor.getColumnIndexOrThrow(BRONZESCORE))
           		, cursor.getString(cursor.getColumnIndexOrThrow(MAP))
+          		, LevelTypes.valueOf(cursor.getString(cursor.getColumnIndexOrThrow(TYPE)))
           		);
         	cursor.moveToNext();
         }
         cursor.close();
         return levelInfos;
+	}
+	
+	public int countLevels(LevelTypes type){
+		SQLiteDatabase database = callbacks.getDatabase();
+		String sql = "SELECT COUNT(*) FROM "+TABLENAME+" WHERE "+TABLENAME+"."+TYPE+" = ?";
+		String[] selectionArgs = {type.toString()};
+		Cursor cursor = database.rawQuery(sql, selectionArgs);
+		cursor.moveToFirst();
+		int levelCount = cursor.getInt(0);
+		cursor.close();
+		return levelCount;
 	}
 	
 	public void clearScores(){
@@ -169,7 +186,7 @@ public class LevelsTable implements DataAccess{
 		database.update(TABLENAME, updateValues, null, null);
 	}
 	
-	public Achievement getLevelAchievment(int levelNum){
+	public Achievement getLevelAchievment(long levelNum){
 		SQLiteDatabase database = callbacks.getDatabase();
 		String[] columns = new String[]{
 				BESTSCORE
@@ -178,7 +195,6 @@ public class LevelsTable implements DataAccess{
 				, BRONZESCORE
 				};
 		String where = ID+"="+levelNum;
-		
 		Cursor cursor = database.query(TABLENAME, columns, where, null, null, null, null);
 		cursor.moveToFirst();
 		int goldScore = cursor.getInt(cursor.getColumnIndexOrThrow(GOLDSCORE));
@@ -199,7 +215,7 @@ public class LevelsTable implements DataAccess{
 			return Achievement.GOLD;
 		}
 	}
-	public void newBestScore(int levelNum, int newScore, String playerName){
+	public void newBestScore(long levelNum, int newScore, String playerName){
 		SQLiteDatabase database = callbacks.getDatabase();
 		ContentValues updateValues = new ContentValues();
 		updateValues.put(BESTSCORE, newScore);
@@ -208,58 +224,65 @@ public class LevelsTable implements DataAccess{
 		database.update(TABLENAME, updateValues, where, null);	
 	}
 	
-	
-	/*public String[] getMapData(int levelNum){
-	db = databaseHelper.getWritableDatabase();
-	String[] columns = new String[]{CustomLevelDatabaseHelper.MAPDATA};
-	String where = CustomLevelDatabaseHelper.LEVELID+"="+levelNum;
-	Cursor cursor = db.query(CustomLevelDatabaseHelper.TABLENAME, columns, where, null, null, null, null);
-	cursor.moveToFirst();
-	String[] result = new String[10];
-	result = cursor.getString(cursor.getColumnIndex(CustomLevelDatabaseHelper.MAPDATA)).split(delimiter);
-	return result;
-}
-public void updateMapData(String[] data, int levelNum){
-	db = databaseHelper.getWritableDatabase();
-	String where = CustomLevelDatabaseHelper.LEVELID+" = "+levelNum;
-	ContentValues contentVal = new ContentValues();
-	contentVal.put(CustomLevelDatabaseHelper.MAPDATA, joinMapData(data));
-	db.update(CustomLevelDatabaseHelper.TABLENAME, contentVal, where, null);
-}
-public void updateMapInfo(int levelNum, int mineLimit, int goldScore, int silverScore, 
-		int bronzeScore, int difficulty, String name){
-	db = databaseHelper.getWritableDatabase();
-	String where = CustomLevelDatabaseHelper.LEVELID+" = "+levelNum;
-	ContentValues contentVal = new ContentValues();
-	contentVal.put(CustomLevelDatabaseHelper.GOLDSCORE, goldScore);
-	contentVal.put(CustomLevelDatabaseHelper.SILVERSCORE, silverScore);
-	contentVal.put(CustomLevelDatabaseHelper.BRONZESCORE, bronzeScore);
-	contentVal.put(CustomLevelDatabaseHelper.DIFFICULTY, difficulty);
-	contentVal.put(CustomLevelDatabaseHelper.LEVELNAME, name);
-	db.update(CustomLevelDatabaseHelper.TABLENAME, contentVal, where, null);
-}
-//tutorials cannot be added to custom maps
-public void createMap(String[] data, int mineLimit, int goldScore, int silverScore, 
-		int bronzeScore, int difficulty, String name){
-	db = databaseHelper.getWritableDatabase();
-	ContentValues contentVal = new ContentValues();
-	contentVal.put(CustomLevelDatabaseHelper.MAPDATA, joinMapData(data));
-	contentVal.put(CustomLevelDatabaseHelper.GOLDSCORE, goldScore);
-	contentVal.put(CustomLevelDatabaseHelper.SILVERSCORE, silverScore);
-	contentVal.put(CustomLevelDatabaseHelper.BRONZESCORE, bronzeScore);
-	contentVal.put(CustomLevelDatabaseHelper.DIFFICULTY, difficulty);
-	contentVal.put(CustomLevelDatabaseHelper.LEVELNAME, name);
-	db.insert(CustomLevelDatabaseHelper.TABLENAME, null, contentVal);
-}
-private String joinMapData(String[] data){
-	String joinedArray = "";
-	int mapSize = 10;
-	for(int i=0;i<mapSize;i++){
-		joinedArray += data[i];
-		if(i != mapSize-1){
-			joinedArray += delimiter;
+	public LevelInfo createCustomLevel(){
+		SQLiteDatabase database = callbacks.getDatabase();
+		ContentValues rowData = new ContentValues();
+		String defaultName = "customLevel";
+		rowData.put(NAME, defaultName);
+		Log.i("LevelsTable", "levelName "+rowData.getAsString(NAME));
+		rowData.put(BESTSCORE, -1);
+		Log.i("LevelsTable", "bestscore "+rowData.getAsString(BESTSCORE));
+		rowData.put(BESTPLAYER, "");
+		Log.i("LevelsTable", "bestplayer "+rowData.getAsString(BESTPLAYER));
+		int defaultMineLimit = 5;
+		rowData.put(MINELIMIT, defaultMineLimit);
+		Log.i("LevelsTable", "minelimit "+rowData.getAsString(MINELIMIT));
+		int defaultGoldScore = 70;
+		rowData.put(GOLDSCORE, defaultGoldScore);
+		Log.i("LevelsTable", "goldscore "+rowData.getAsString(GOLDSCORE));
+		int defaultSilverScore = 60;
+		rowData.put(SILVERSCORE, defaultSilverScore);
+		Log.i("LevelsTable", "silverscore "+rowData.getAsString(SILVERSCORE));
+		int defaultBronzeScore = 50;
+		rowData.put(BRONZESCORE, defaultBronzeScore);
+		Log.i("LevelsTable", "bronzescore "+rowData.getAsString(BRONZESCORE));
+		int defaultDifficulty = 1;
+		rowData.put(DIFFICULTY, defaultDifficulty);
+		Log.i("LevelsTable", "difficulty "+rowData.getAsString(DIFFICULTY));
+		//load actual map data
+		String levelDataFormatted = "";
+		for(int i=0;i<10;i++){
+			levelDataFormatted += "0,0,0,0,0,0,0,0,0,0"+"|";
 		}
+		//remove final |
+		levelDataFormatted = levelDataFormatted.substring(0, levelDataFormatted.length()-2);
+		rowData.put(MAP, levelDataFormatted);
+		Log.i("LevelsTable", "mapdata "+rowData.getAsString(MAP));
+		rowData.put(TYPE, LevelTypes.CUSTOM.toString());
+		long id = database.insert(TABLENAME, null, rowData);
+		//return the id of the inserted level
+		return new LevelInfo(id, defaultName, defaultDifficulty, defaultMineLimit, -1, "", defaultGoldScore, defaultSilverScore, defaultBronzeScore, levelDataFormatted, LevelTypes.CUSTOM);
 	}
-	return joinedArray;
-}*/
+	public void updateLevel(LevelInfo levelInfo){
+		SQLiteDatabase database = callbacks.getDatabase();
+		ContentValues contentValues = new ContentValues();
+		contentValues.put(BRONZESCORE, levelInfo.bronzeScore);
+		contentValues.put(SILVERSCORE, levelInfo.silverScore);
+		contentValues.put(GOLDSCORE, levelInfo.goldScore);
+		contentValues.put(MINELIMIT, levelInfo.mineLimit);
+		contentValues.put(NAME, levelInfo.name);
+		contentValues.put(MAP, levelInfo.mapData);
+		String where = ID+"=?";
+		String[] whereParams =  new String[]{
+			String.valueOf(levelInfo.id)
+		};
+		database.update(TABLENAME, contentValues, where, whereParams);
+	}
+	
+	public void deleteLevel(long levelId){
+		SQLiteDatabase database = callbacks.getDatabase();
+		String where = ID+"=?";
+		String[] whereArgs = {String.valueOf(levelId)};
+		database.delete(TABLENAME, where, whereArgs);
+	}
 }

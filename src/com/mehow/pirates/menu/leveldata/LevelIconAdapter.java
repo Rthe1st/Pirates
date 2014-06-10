@@ -1,5 +1,7 @@
 package com.mehow.pirates.menu.leveldata;
 
+import java.io.Serializable;
+
 import android.content.Context;
 import android.view.Gravity;
 import android.view.View;
@@ -11,7 +13,14 @@ import com.mehow.pirates.LevelInfo;
 import com.mehow.pirates.R;
 import com.mehow.pirates.database.LevelsTable;
 
-public class LevelIconAdapter extends BaseAdapter{
+public class LevelIconAdapter extends BaseAdapter implements Serializable{
+	
+	private LevelsTable.LevelTypes levelType;
+	
+	public interface Callbacks{
+        public LevelInfo[] getLevelInfos(LevelsTable.LevelTypes type);
+        public void setLevelChoice(long id);
+	}
 	
 	public HightlightedInfo highLightedInfo;
 	
@@ -22,6 +31,9 @@ public class LevelIconAdapter extends BaseAdapter{
 	    public HightlightedInfo() {}
 	    
 	    public void setCurHighlighted(int i){
+	    	if(curHighlighted == i){
+	    		return;
+	    	}
 	    	if(curHighlighted != -1){
 	    		setLastHighlighted(curHighlighted);
 	    	}
@@ -41,10 +53,29 @@ public class LevelIconAdapter extends BaseAdapter{
 	
 	private LevelInfo[] levelInfos;
 	
-	public LevelIconAdapter (LevelInfo[] tLevelInfos){
+	private Callbacks callbacks;
+	
+	public LevelIconAdapter (LevelsTable.LevelTypes tLevelType, Callbacks tCallbacks){
 		this.highLightedInfo = new HightlightedInfo();
-		levelInfos = tLevelInfos;
+		levelType = tLevelType;
+		callbacks = tCallbacks;
+		levelInfos = callbacks.getLevelInfos(levelType);
+		if(levelInfos.length > 0){
+			updateSelected(0);
+		}
 	}
+	
+	public void updateSelected(int position){
+		callbacks.setLevelChoice(levelInfos[position].id);
+		this.highLightedInfo.setCurHighlighted(position);
+		this.notifyDataSetChanged();
+	}
+	
+	public void refreshData(){
+		levelInfos = callbacks.getLevelInfos(levelType);
+		notifyDataSetChanged();
+	}
+	
 	public int getCount() {
 		return levelInfos.length;
 	}
@@ -57,14 +88,18 @@ public class LevelIconAdapter extends BaseAdapter{
 		return 0;
 	}
 
+	//optomise, clicking a level taking lonng update time
 	public View getView(int mapNo, View convertView, ViewGroup parent) {
-		if(convertView != null && mapNo != highLightedInfo.getCurHighlighted() && mapNo != highLightedInfo.getLastHighlighted()){
+		TextView textView;
+		/*if(convertView != null && mapNo != highLightedInfo.getCurHighlighted() && mapNo != highLightedInfo.getLastHighlighted()){
+			textView  = (TextView)convertView;
+			textView.setText(Integer.toString(mapNo+1));
 			return convertView;
-		}
+		}*/
 		Context context = parent.getContext();
-        TextView textView = setUpTextView(mapNo,context);
+        textView = setUpTextView(mapNo,context);
         LevelsTable.Achievement levelAchievement = LevelsTable.calculateAchievement(levelInfos[mapNo].bestScore, levelInfos[mapNo].bronzeScore, levelInfos[mapNo].silverScore, levelInfos[mapNo].goldScore);
-       if(highLightedInfo.getLastHighlighted() == mapNo) {
+        if(highLightedInfo.getLastHighlighted() == mapNo) {
     	   textView.setBackgroundResource(nonHighlightDrawType(levelAchievement));
         }else if(highLightedInfo.getCurHighlighted() == mapNo){
         	textView.setBackgroundResource(highlightDrawType(levelAchievement)); 	

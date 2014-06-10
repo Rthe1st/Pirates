@@ -1,41 +1,46 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/levelsMenu"
-    android:baselineAligned="false"
     android:layout_width="wrap_content"
     android:layout_height="match_parent"
+    android:baselineAligned="false"
     android:orientation="horizontal" >
 
     <!-- height = 2 rows = rowHeight*2+vertSpace*1 -->
     <!-- lol cant specify row height -->
-]
+
     <GridView
         android:id="@+id/levelIcons"
         android:layout_width="0dp"
         android:layout_height="match_parent"
+        android:layout_weight="1"
         android:columnWidth="48dp"
         android:gravity="center"
         android:horizontalSpacing="8dp"
         android:numColumns="auto_fit"
         android:stretchMode="none"
-        android:verticalSpacing="8dp"
-        android:layout_weight="1"/>
-   <LinearLayout android:id="@+id/levelsLayoutExtras"
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:orientation="vertical"
-      android:gravity="center_horizontal">
-	   <com.mehow.pirates.menu.leveldata.LevelInfoLayout
-	        android:id="@+id/levelInfo"
-	        android:layout_width="wrap_content"
-	        android:layout_height="wrap_content">
-	    </com.mehow.pirates.menu.leveldata.LevelInfoLayout>
-	    <ImageButton
-	        android:id="@+id/play"
-	        android:layout_width="wrap_content"
-	        android:layout_height="wrap_content"
-	        android:contentDescription="@string/playBtnDescription"
-	        android:onClick="startLevel"
-	        android:src="@drawable/play_button"/>
-	</LinearLayout>
+        android:verticalSpacing="8dp" />
+
+    <LinearLayout
+        android:id="@+id/levelsLayoutExtras"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:orientation="vertical" >
+
+        <com.mehow.pirates.menu.leveldata.LevelInfoLayout
+            android:id="@+id/levelInfo"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" >
+        </com.mehow.pirates.menu.leveldata.LevelInfoLayout>
+
+        <ImageButton
+            android:id="@+id/play"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:contentDescription="@string/playBtnDescription"
+            android:onClick="startLevel"
+            android:src="@drawable/play_button" />
+    </LinearLayout>
+
 </LinearLayout>

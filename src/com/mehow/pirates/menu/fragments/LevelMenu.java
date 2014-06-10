@@ -11,12 +11,8 @@ import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.GridView;
 
-import com.mehow.pirates.LevelInfo;
 import com.mehow.pirates.R;
-import com.mehow.pirates.database.LevelsTable;
-import com.mehow.pirates.menu.activities.MenuActivity;
 import com.mehow.pirates.menu.leveldata.LevelIconAdapter;
-import com.mehow.pirates.menu.leveldata.LevelIconDataArray;
 import com.mehow.pirates.menu.leveldata.LevelInfoLayout;
 
 //CURRENTLY DOESNT CHANGE LAYOUT BASED ON ROTATION
@@ -26,13 +22,10 @@ public class LevelMenu extends Fragment{
     GridView gridView;
     LevelInfoLayout levelInfo;
     LevelIconAdapter myAdapter;
-    LevelIconDataArray levelIconDataArray = new LevelIconDataArray();
 
     public interface Callbacks{
         public void startLevel(View view);
-        public int getMapChoice();
-        public void setMapChoice(int mapChoice);
-        public LevelInfo[] getLevelInfos(LevelsTable.LevelTypes type);
+        public LevelIconAdapter getLevelIconAdapter();
     }
     Callbacks mCallbacks;
 
@@ -53,9 +46,10 @@ public class LevelMenu extends Fragment{
         levelInfo = (LevelInfoLayout)view.findViewById(R.id.levelInfo);
         gridView = (GridView)view.findViewById(R.id.levelIcons);
         
-        myAdapter = new LevelIconAdapter(mCallbacks.getLevelInfos(LevelsTable.LevelTypes.PRE_MADE));
-
-        gridView.setAdapter(myAdapter); // uses the view to get the context instead of getActivity().
+        //myAdapter = new LevelIconAdapter(mCallbacks.getLevelInfos(LevelsTable.LevelTypes.PRE_MADE));
+        myAdapter = mCallbacks.getLevelIconAdapter();
+        
+        gridView.setAdapter(myAdapter);
         gridView.setOnItemClickListener(new OnItemClickListener(){
         	public void onItemClick(AdapterView<?> parent, 
             View v, int position, long id){
@@ -77,17 +71,10 @@ public class LevelMenu extends Fragment{
 
         mCallbacks = (Callbacks) activity;
     }
-    //these should arguably use callback functions to make it an optino to display the info flexably
-	public LevelIconDataArray getLevelIconDataArray(){
-		return levelIconDataArray;
-	}
+    
 	public void gridViewItemClickListener(AdapterView<?> parent, 
             View v, int position, long id){
-        		myAdapter.highLightedInfo.setCurHighlighted(position);
-        		myAdapter.notifyDataSetChanged();
-                mCallbacks.setMapChoice(position+1);
-                //call database
-                MenuActivity activity = ((MenuActivity)parent.getContext());
+				myAdapter.updateSelected(position);
                 levelInfo.changeInfo(myAdapter.getItem(position));
 	}
 }

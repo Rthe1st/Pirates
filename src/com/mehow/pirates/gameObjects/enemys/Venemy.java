@@ -13,10 +13,12 @@ public class Venemy extends Enemy{
 	//move horizontaly before vert
 	protected static int defNumOfMovesAllowed = 2;
 
-	public Venemy(Cords cords, int tempNumOfMovesAllowed, PathAlgorithms.Callbacks tCallbacks) {
+	public static final String ENCODE_VALUE = "4";
+	
+	public Venemy(Cords cords, int tempNumOfMovesAllowed, Callbacks tCallbacks) {
 		super(cords, tempNumOfMovesAllowed, tCallbacks);
 	}
-	public Venemy(Cords cords, PathAlgorithms.Callbacks tCallbacks) {
+	public Venemy(Cords cords, Callbacks tCallbacks) {
 		super(cords, defNumOfMovesAllowed, tCallbacks);
 	}
 

@@ -34,10 +34,8 @@ public class MapRightOptions extends Fragment{
 			LayoutParams restartBtnParams = new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
 			if(config.orientation == Configuration.ORIENTATION_PORTRAIT){
 				castLayout.setOrientation(LinearLayout.HORIZONTAL);
-			//	restartBtnParams.setMargins(50, 0, 0, 0);
 			}else{
-				castLayout.setOrientation(LinearLayout.VERTICAL);
-		//		restartBtnParams.setMargins(0, 50, 0, 0);				
+				castLayout.setOrientation(LinearLayout.VERTICAL);				
 			}
 			castLayout.findViewById(R.id.restartBtn).setLayoutParams(restartBtnParams);
 		return inflatedView;

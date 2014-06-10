@@ -7,15 +7,29 @@ import android.graphics.BitmapFactory;
 import com.mehow.pirates.Cords;
 import com.mehow.pirates.R;
 
-public class GoalTile extends Tile{
+public class Goal extends Tile{
 	
-	public GoalTile(Cords cords){
+	public static final String ENCODE_VALUE = "5";
+	
+	public Goal(Cords cords){
 		super(cords);
 	}
+	
+	//this is deleberatly not limited to 1, partly because a check would require a search of treemap
+	//but also cause multipel goals could be fun
+	public static boolean isValidMove(CordData cordData){
+		if(cordData.enemy == null && cordData.ship==null){
+			return true;
+		}else{
+			return false;
+		}
+
+	}
+	
     //------------
     //ANIMATION
     //------------
-    
+	
 	private static Bitmap self;
 	
     //replace with drawables

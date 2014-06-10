@@ -31,7 +31,6 @@ public class GameObjectMap<T extends GameObject>  implements Serializable{
 		deadGos = new ArrayList<T>();
 	}
 	
-	
 	public T get(Cords cords){
 		return goMap.get(cords);
 	}
@@ -62,6 +61,7 @@ public class GameObjectMap<T extends GameObject>  implements Serializable{
 			}
 		}
 	}
+	
 	public void undoStep(){
 		for (T mapObject : new ArrayList<T>(goMap.values())) {
 			Cords currentCords = mapObject.getLatestCords();
@@ -74,8 +74,13 @@ public class GameObjectMap<T extends GameObject>  implements Serializable{
 			}
 		}
 	}
+
 	public void kill(Cords cords){
 		deadGos.add(goMap.remove(cords));
+	}
+	
+	public void remove(Cords cords){
+		goMap.remove(cords);
 	}
 	
 	public void makeStep(Cords oldCords, Cords newCords){

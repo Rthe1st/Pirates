@@ -7,11 +7,17 @@ import android.graphics.BitmapFactory;
 import com.mehow.pirates.Cords;
 import com.mehow.pirates.R;
 
-public class SeaTile extends Tile{
+public class Sea extends Tile{
 
-    public SeaTile(Cords cords) {
+	public static final String ENCODE_VALUE = "0";
+	
+    public Sea(Cords cords) {
 		super(cords);
 	}
+  
+    public static boolean isValidMove(CordData cordData){
+    	return true;
+    }
     
     //------------
     //ANIMATION

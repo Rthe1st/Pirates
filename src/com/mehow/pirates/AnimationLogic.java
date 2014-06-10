@@ -9,22 +9,26 @@ public class AnimationLogic {
 	private int interStepNo = 0;
 	private static int animationSpeed = 100;
 	
-	public static interface AnimationView{
+	public static interface AnimationViewCallbacks{
 		public void invalidate ();
 	}
 	
-	public static interface GameLogicCallbacks {
+	public static interface LogicCallbacks {
+		//this is a delayed callback
+		//as no game mechanic work should be done whilst drawing, action this performs
+		//should be those which could of been done before animation happended,
+		//but didnt because we wanted user to view aniamtion
 		public void animationFinished();
 		
 		public boolean checkMoreMoves(int stepNumber);
 	};
 	
-	private AnimationView animationView;
-	private GameLogicCallbacks gameLogicCallbacks;
+	private AnimationViewCallbacks animationViewCallbacks;
+	private LogicCallbacks logicCallbacks;
 	
-	public AnimationLogic(AnimationView tAnimationView, GameLogicCallbacks tGameLogicCallbacks){
-		animationView = tAnimationView;
-		gameLogicCallbacks = tGameLogicCallbacks;
+	public AnimationLogic(AnimationViewCallbacks tAnimationView, LogicCallbacks tLogicCallbacks){
+		animationViewCallbacks = tAnimationView;
+		logicCallbacks = tLogicCallbacks;
 	}
 	
 	public int getCurrentAnimationInterStepNo(){
@@ -46,7 +50,7 @@ public class AnimationLogic {
 	public void updateScreen(boolean animate){
 		//animate parameter is just to optimise
 		if(animate == false){
-			animationView.invalidate();
+			animationViewCallbacks.invalidate();
 		}else{
 			interStepNo = 0;
 			offsetNo = 0;
@@ -64,7 +68,7 @@ public class AnimationLogic {
 	}
 
 	private void invalidateWrapper(){
-		animationView.invalidate();
+		animationViewCallbacks.invalidate();
 		offsetNo += 1;
 		animationHandle.postDelayed(new Runnable(){
 
@@ -79,11 +83,11 @@ public class AnimationLogic {
 	private void nextStep() {
 		interStepNo += 1;
 		offsetNo = 0;
-		moreMoves = gameLogicCallbacks.checkMoreMoves(interStepNo);
+		moreMoves = logicCallbacks.checkMoreMoves(interStepNo);
 		if (moreMoves) {
 			animationLoop();
 		} else {
-			gameLogicCallbacks.animationFinished();
+			logicCallbacks.animationFinished();
 		}
 	}
 }

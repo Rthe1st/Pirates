@@ -1,49 +1,59 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-		android:id="@+id/topMenu"
-	    android:orientation="vertical"
-	    android:layout_width="wrap_content"
-	    android:layout_height="wrap_content"
-	    android:layout_gravity="center">
-	   <Button android:id="@+id/levels_btn"
-	        android:layout_width="match_parent"
-	        android:layout_height="wrap_content"
-	        android:minHeight="48dp"
-	        android:text="Level"
-	        android:contentDescription="levels"
-	        android:background="@drawable/custom_menu_btn"
-	        android:onClick="levelsLayout"/>
-	   <Button android:id="@+id/randlevel_btn"
-	        android:layout_width="match_parent"
-	        android:layout_height="wrap_content"
-	        android:minHeight="48dp"
-	        android:text="Random Level"
-	        android:background="@drawable/custom_menu_btn"
-	        android:contentDescription="random level"
-	        android:onClick="randlevelLayout"/>
-	   <Button android:id="@+id/stats_btn"
-	        android:layout_width="match_parent"
-	        android:layout_height="wrap_content"
-	        android:minHeight="48dp"
-	        android:text="Stats"
-	       android:background="@drawable/custom_menu_btn"
-	        android:contentDescription="statistics"
-	        android:onClick="statsLayout"/>
-	    <Button android:id="@+id/settings_btn"
-	        android:layout_width="match_parent"
-	        android:layout_height="wrap_content"
-	        android:minHeight="48dp"
-	        android:text="Settings"
-	        android:background="@drawable/custom_menu_btn"
-	        android:contentDescription="settings"
-	        android:onClick="settingsLayout"/>
-	    <!--
-	    <Button android:id="@+id/customLevels"
-	        android:layout_width="match_parent"
-	        android:layout_height="wrap_content"
-	        android:minHeight="48dp"
-	        android:text="Custom Levels"
-	        android:background="@drawable/custom_menu_btn"
-	        android:contentDescription="custom levels"
-	        android:onClick="customLevelsLayout"/>-->
+    android:id="@+id/topMenu"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_gravity="center"
+    android:orientation="vertical" >
+
+    <Button
+        android:id="@+id/levels_btn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/custom_menu_btn"
+        android:contentDescription="levels"
+        android:minHeight="48dp"
+        android:onClick="levelsLayout"
+        android:text="Level" />
+
+    <Button
+        android:id="@+id/randlevel_btn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/custom_menu_btn"
+        android:contentDescription="random level"
+        android:minHeight="48dp"
+        android:onClick="randlevelLayout"
+        android:text="Random Level" />
+
+    <Button
+        android:id="@+id/stats_btn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/custom_menu_btn"
+        android:contentDescription="statistics"
+        android:minHeight="48dp"
+        android:onClick="statsLayout"
+        android:text="Stats" />
+
+    <Button
+        android:id="@+id/settings_btn"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/custom_menu_btn"
+        android:contentDescription="settings"
+        android:minHeight="48dp"
+        android:onClick="settingsLayout"
+        android:text="Settings" />
+
+    <Button
+        android:id="@+id/customLevels"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/custom_menu_btn"
+        android:contentDescription="custom levels"
+        android:minHeight="48dp"
+        android:onClick="customLevelsLayout"
+        android:text="Custom Levels" />
+
 </LinearLayout>

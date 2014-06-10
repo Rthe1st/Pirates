@@ -13,68 +13,51 @@ import android.view.View;
 import com.mehow.pirates.AnimationLogic;
 import com.mehow.pirates.Cords;
 import com.mehow.pirates.gameObjects.GameObject;
-import com.mehow.pirates.gameObjects.GoalTile;
+import com.mehow.pirates.gameObjects.Goal;
 import com.mehow.pirates.gameObjects.Mine;
-import com.mehow.pirates.gameObjects.RockTile;
-import com.mehow.pirates.gameObjects.SeaTile;
+import com.mehow.pirates.gameObjects.Rock;
+import com.mehow.pirates.gameObjects.Sea;
 import com.mehow.pirates.gameObjects.Ship;
 import com.mehow.pirates.gameObjects.enemys.Aenemy;
 import com.mehow.pirates.gameObjects.enemys.Henemy;
 import com.mehow.pirates.gameObjects.enemys.Venemy;
-import com.mehow.pirates.level.activites.LevelActivity;
 
 //this call should be changed to deal with only the interaction with view objects (ie not game logic)
 
 public class TileView extends View implements
-		AnimationLogic.AnimationView {
+		AnimationLogic.AnimationViewCallbacks {
 
 	private static int tileWidth;
 	private static int tileHeight;
 	private static RectF tileDrawArea;
 
-	private GameLogicCallbacks gameLogicCallbacks;
+	private LogicCallbacks logicCallbacks;
 
 	public AnimationLogic animationLogic;
 	
-	public interface GameLogicCallbacks {
-		public void animationFinished();
-
-		public GameLogic.GameStates getGameState();
-
+	public interface ActivityCallbacks{
+		public LogicCallbacks getLogicInstance();
+	}
+	
+	public interface LogicCallbacks extends com.mehow.pirates.AnimationLogic.LogicCallbacks{
 		public int getMapWidth();
 
 		public int getMapHeight();
 
-		public GameLogic.GameStates onActionUp(Cords cord);
-
-		public boolean invalidate();
+		public void onActionUp(Cords cord);
 
 		public void draw(Canvas canvas, int interStepNo, float offsetAmount, RectF drawArea);
-		
-		public boolean checkMoreMoves(int stepNumber);
 	};
 
 	public TileView(Context context, AttributeSet attrs) {
 		super(context, attrs);
-		// Activities (!?FRAGMENTS?!)containing this view must implement its
-		// callbacks.
 		Activity activity = (Activity) this.getContext();
-		// this should NOT have to cast activity, removes the point of
-		// callbacks.
-		if (!(((LevelActivity) activity).gameLogic instanceof GameLogicCallbacks)) {
+		if (!(activity instanceof ActivityCallbacks)) {
 			throw new IllegalStateException(
-					"Activity must implement Gamelogic callbacks.");
+					"Activity must return a logic.");
 		}
-
-		gameLogicCallbacks = ((LevelActivity) activity).gameLogic;// this
-																	// should
-																	// probably
-																	// go via a
-																	// fragment?
-		animationLogic = new AnimationLogic(this, ((LevelActivity) activity).gameLogic);
-		// setup highlight colour for movement squares
-		// chosenMap = attrs.getAttributeIntValue(0, 0) ;
-		// resetData();
+		logicCallbacks = ((ActivityCallbacks)activity).getLogicInstance();
+		animationLogic = new AnimationLogic(this, logicCallbacks);
 	}
 
 	// this is called as soon as size is set, oldw and old h will be 0 is size
@@ -87,9 +70,9 @@ public class TileView extends View implements
 		GameObject.loadBitmapsAndPaints(r);
 		Ship.loadSpecialBitmaps(r);
 		Mine.loadSpecialBitmaps(r);
-		GoalTile.loadSpecialBitmaps(r);
-		RockTile.loadSpecialBitmaps(r);
-		SeaTile.loadSpecialBitmaps(r);
+		Goal.loadSpecialBitmaps(r);
+		Rock.loadSpecialBitmaps(r);
+		Sea.loadSpecialBitmaps(r);
 		Aenemy.loadSpecialBitmaps(r);
 		Venemy.loadSpecialBitmaps(r);
 		Henemy.loadSpecialBitmaps(r);
@@ -104,9 +87,9 @@ public class TileView extends View implements
 	// derive size tiles should be
 	private void defineMapProperties(int width, int height) {
 		System.out.println("width: " + width + " height: " + height);
-		tileWidth = (int) Math.floor(width / gameLogicCallbacks.getMapWidth());
+		tileWidth = (int) Math.floor(width / logicCallbacks.getMapWidth());
 		// System.out.println("pre round tilewidth"+Math.floor(width/mapData.getMapWidth()));
-		tileHeight = (int) Math.floor(height/ gameLogicCallbacks.getMapHeight());
+		tileHeight = (int) Math.floor(height/ logicCallbacks.getMapHeight());
 		// System.out.println("pre round tileheight"+Math.floor(width/mapData.getMapHeight()));
 		// make sure always square - not needed currently but may be for
 		// different screens
@@ -122,7 +105,7 @@ public class TileView extends View implements
 		super.onDraw(canvas);
 		double animationFrameDistance = (double) tileWidth / (double) animationLogic.getNumberOfStages();
 		int offsetAmount = (int) Math.round((animationLogic.getCurrentAnimationOffsetNo())*animationFrameDistance);
-		gameLogicCallbacks.draw(canvas, animationLogic.getCurrentAnimationInterStepNo(), offsetAmount, tileDrawArea);
+		logicCallbacks.draw(canvas, animationLogic.getCurrentAnimationInterStepNo(), offsetAmount, tileDrawArea);
 	}
 
 	@Override
@@ -130,9 +113,8 @@ public class TileView extends View implements
 		int action = event.getAction();
 		float y, x;
 		int xCord, yCord;
-		if (action == MotionEvent.ACTION_UP
-				&& gameLogicCallbacks.getGameState() != GameLogic.GameStates.MOVE_COMPLETE) {
-			System.out.println("ACTION_UP and gameSTATE != MOVE_COMPLETE");
+		if (action == MotionEvent.ACTION_UP) {
+			System.out.println("ACTION_UP");
 			y = event.getY();
 			x = event.getX();
 			System.out.println("float cords: x: " + x + " y: " + y);
@@ -140,14 +122,7 @@ public class TileView extends View implements
 			xCord = (int) Math.floor(x / tileWidth);
 			yCord = (int) Math.floor(y / tileHeight);
 			Cords touchedCord = new Cords(xCord, yCord);
-			GameLogic.GameStates returnState = gameLogicCallbacks
-					.onActionUp(touchedCord);
-			System.out.println("end state: " + returnState.toString());
-			if (gameLogicCallbacks.invalidate()) {
-				System.out.println("invalidated");
-				//this.invalidate();
-				animationLogic.updateScreen(false);
-			}
+			logicCallbacks.onActionUp(touchedCord);
 		}
 		return true;
 	}
