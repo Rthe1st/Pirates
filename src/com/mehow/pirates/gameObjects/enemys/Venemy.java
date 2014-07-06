@@ -1,15 +1,21 @@
 package com.mehow.pirates.gameObjects.enemys;
 
 
+import java.io.Serializable;
+
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 
 import com.mehow.pirates.Cords;
 import com.mehow.pirates.R;
-import com.mehow.pirates.gameObjects.PathAlgorithms;
 
-public class Venemy extends Enemy{
+public class Venemy extends Enemy implements Serializable{
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
 	//move horizontaly before vert
 	protected static int defNumOfMovesAllowed = 2;
 
@@ -23,7 +29,7 @@ public class Venemy extends Enemy{
 	}
 
 	public Cords computeMoveStep(Cords shipCords){
-		Cords oldCords = turnRecords.getLatestCords();
+		Cords oldCords = currentCords;//turnRecords.getLatestCords();
 		Cords newCords;
 		//really dum lol make me smart please im alive i have rights
 		//add log for landing on ship
@@ -42,7 +48,7 @@ public class Venemy extends Enemy{
      }
 
     @Override
-    protected Bitmap getSelf() {
+    public Bitmap getSelf() {
  	   return self;
     }
 }

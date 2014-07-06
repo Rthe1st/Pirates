@@ -23,6 +23,7 @@ import com.mehow.pirates.menu.fragments.RandomLevelMenu;
 import com.mehow.pirates.menu.fragments.SettingsMenu;
 import com.mehow.pirates.menu.fragments.StatsMenu;
 import com.mehow.pirates.menu.leveldata.LevelIconAdapter;
+import com.mehow.pirates.server.LevelService;
 
 public class MenuActivity extends FragmentActivity implements
 		MenuList.Callbacks, LevelMenu.Callbacks, CustomLevelsMenu.Callbacks, LevelIconAdapter.Callbacks {

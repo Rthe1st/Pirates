@@ -94,19 +94,6 @@ public class LevelsTable implements DataAccess{
 			rowData.put(MAP, levelInfoXML.getString(8));
 			Log.i("LevelsTable", "mapdata "+rowData.getAsString(MAP));
 			levelInfoXML.recycle();
-			//-----------------
-			//load actual map data
-			/*int levelDataResourceId = context.getResources().getIdentifier("level"+i, "array", "com.mehow.pirates");
-			String[] levelData = context.getResources().getStringArray(levelDataResourceId);
-			String levelDataFormatted = "";
-			for(String row : levelData){
-				levelDataFormatted += row+"|";
-			}
-			//remove final |
-			levelDataFormatted = levelDataFormatted.substring(0, levelDataFormatted.length()-2);
-			rowData.put(MAP, levelDataFormatted);
-			Log.i("LevelsTable", "mapdata "+rowData.getAsString(MAP));
-			*/
 			rowData.put(TYPE, LevelTypes.PRE_MADE.toString());
 			database.insert(TABLENAME, null, rowData);
 			rowData.clear();
@@ -251,11 +238,10 @@ public class LevelsTable implements DataAccess{
 		Log.i("LevelsTable", "difficulty "+rowData.getAsString(DIFFICULTY));
 		//load actual map data
 		String levelDataFormatted = "";
-		for(int i=0;i<10;i++){
-			levelDataFormatted += "0,0,0,0,0,0,0,0,0,0"+"|";
+		for(int i=0;i<9;i++){
+			levelDataFormatted += "0,0,0,0,0,0,0,0,0,0|";
 		}
-		//remove final |
-		levelDataFormatted = levelDataFormatted.substring(0, levelDataFormatted.length()-2);
+		levelDataFormatted += "0,0,0,0,0,0,0,0,0,0";//remove final |
 		rowData.put(MAP, levelDataFormatted);
 		Log.i("LevelsTable", "mapdata "+rowData.getAsString(MAP));
 		rowData.put(TYPE, LevelTypes.CUSTOM.toString());

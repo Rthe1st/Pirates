@@ -18,7 +18,9 @@ import com.mehow.pirates.gameObjects.Mine;
 import com.mehow.pirates.gameObjects.Rock;
 import com.mehow.pirates.gameObjects.Sea;
 import com.mehow.pirates.gameObjects.Ship;
+import com.mehow.pirates.gameObjects.Tile;
 import com.mehow.pirates.gameObjects.enemys.Aenemy;
+import com.mehow.pirates.gameObjects.enemys.Enemy;
 import com.mehow.pirates.gameObjects.enemys.Henemy;
 import com.mehow.pirates.gameObjects.enemys.Venemy;
 
@@ -67,12 +69,14 @@ public class TileView extends View implements
 		defineMapProperties(w, h);
 		// load for each game object class
 		Resources r = this.getResources();
-		GameObject.loadBitmapsAndPaints(r);
+		Ship.loadPaints(r);
 		Ship.loadSpecialBitmaps(r);
 		Mine.loadSpecialBitmaps(r);
+		Tile.loadPaints(r);
 		Goal.loadSpecialBitmaps(r);
 		Rock.loadSpecialBitmaps(r);
 		Sea.loadSpecialBitmaps(r);
+		Enemy.loadPaints(r);
 		Aenemy.loadSpecialBitmaps(r);
 		Venemy.loadSpecialBitmaps(r);
 		Henemy.loadSpecialBitmaps(r);
@@ -103,6 +107,7 @@ public class TileView extends View implements
 	@Override
 	public void onDraw(Canvas canvas) {
 		super.onDraw(canvas);
+		//assumes square tiles
 		double animationFrameDistance = (double) tileWidth / (double) animationLogic.getNumberOfStages();
 		int offsetAmount = (int) Math.round((animationLogic.getCurrentAnimationOffsetNo())*animationFrameDistance);
 		logicCallbacks.draw(canvas, animationLogic.getCurrentAnimationInterStepNo(), offsetAmount, tileDrawArea);

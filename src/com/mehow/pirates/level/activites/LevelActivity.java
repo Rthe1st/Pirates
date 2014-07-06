@@ -6,7 +6,9 @@ import android.content.res.TypedArray;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentActivity;
+import android.util.Log;
 import android.view.View;
+import android.widget.ImageButton;
 
 import com.mehow.pirates.Consts;
 import com.mehow.pirates.LevelInfo;
@@ -73,6 +75,9 @@ public class LevelActivity extends FragmentActivity implements
 			// layout
 			setContentView(R.layout.map_vertical);
 		}
+		ImageButton mineButton = ((ImageButton) this.findViewById(R.id.mineBtn));
+		//lol super hack
+		mineButton.setImageResource(R.drawable.ship_btn);
 	}
 
 	@Override
@@ -87,6 +92,7 @@ public class LevelActivity extends FragmentActivity implements
 	@Override
 	public void onStop() {
 		super.onStop();
+		Log.i("LevelActivity", "onstop");
 		// not closing may be bad practie
 		// databaseHelper.close();
 	}
@@ -115,8 +121,9 @@ public class LevelActivity extends FragmentActivity implements
 	public void onSaveInstanceState(Bundle savedInstanceState) {
 		System.out.println("saved");
 		savedInstanceState.putBundle("GAME_LOGIC", gameLogic.saveState());
+		Log.i("LevelActivity", "GameLogic saved");
 		savedInstanceState.putBoolean("restartFlag", restartFlag);
-		super.onSaveInstanceState(savedInstanceState);
+		//super.onSaveInstanceState(savedInstanceState);
 	}
 
 	@Override
@@ -212,6 +219,18 @@ public class LevelActivity extends FragmentActivity implements
 	@Override
 	public void mineBtn(View mineBtnView) {
 		gameLogic.mineButtonPressed();
+	}
+	
+	public void changeMineButtonImage(GameLogic.GameStates gameState){
+		int buttonImage;
+		ImageButton mineButton = ((ImageButton) this.findViewById(R.id.mineBtn));
+		if(gameState.equals(GameLogic.GameStates.MINE_MODE)){
+			buttonImage = R.drawable.mine_btn;
+			mineButton.setImageResource(buttonImage);
+		}else if(gameState.equals(GameLogic.GameStates.MOVE_MODE)){
+			buttonImage = R.drawable.ship_btn;			
+			mineButton.setImageResource(buttonImage);
+		}
 	}
 
 	@Override

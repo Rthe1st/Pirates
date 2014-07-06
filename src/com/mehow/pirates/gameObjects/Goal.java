@@ -1,5 +1,7 @@
 package com.mehow.pirates.gameObjects;
 
+import java.io.Serializable;
+
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -7,7 +9,7 @@ import android.graphics.BitmapFactory;
 import com.mehow.pirates.Cords;
 import com.mehow.pirates.R;
 
-public class Goal extends Tile{
+public class Goal extends Tile implements Serializable{
 	
 	public static final String ENCODE_VALUE = "5";
 	
@@ -42,8 +44,7 @@ public class Goal extends Tile{
 	   	self = BitmapFactory.decodeResource(r, R.drawable.sea);
     }
 
-   @Override
-   protected Bitmap getSelf() {
+   public Bitmap getSelf() {
 	   return self;
    }
    

@@ -1,14 +1,15 @@
 package com.mehow.pirates.gameObjects.enemys;
 
+import java.io.Serializable;
+
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 
 import com.mehow.pirates.Cords;
 import com.mehow.pirates.R;
-import com.mehow.pirates.gameObjects.PathAlgorithms;
 
-public class Aenemy extends Enemy{
+public class Aenemy extends Enemy implements Serializable{
 	protected static int defNumOfMovesAllowed = 1;
 
 	public static final String ENCODE_VALUE = "7";
@@ -23,7 +24,7 @@ public class Aenemy extends Enemy{
 
 	//moves x and y, chooses axis based on displacement
 	public Cords computeMoveStep(Cords shipCords){
-        Cords oldCords = turnRecords.getLatestCords();
+        Cords oldCords = currentCords;//turnRecords.getLatestCords();
         Cords newCords;
 		int yDisplacement = Math.abs(shipCords.y-oldCords.y);
 		int xDisplacement = Math.abs(shipCords.x-oldCords.x);
@@ -51,8 +52,7 @@ public class Aenemy extends Enemy{
  	   	self = BitmapFactory.decodeResource(r, R.drawable.aenemy_ship);
      }
 
-    @Override
-    protected Bitmap getSelf() {
+    public Bitmap getSelf() {
  	   return self;
     }
 }

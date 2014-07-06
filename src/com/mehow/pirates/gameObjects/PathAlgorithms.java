@@ -44,8 +44,7 @@ public abstract class PathAlgorithms implements Serializable{
     //if split into 2 functions, all duplicate checking can be done in initiator function
     public ArrayList<Cords> findPossibleMoves(Cords cords, int range){
     	storedCords = new ArrayList<Cords>();
-    	//could have if in computePoss but would be inefficent
-    	quadDirectCompute(cords, range);
+       	quadDirectCompute(cords, range);
     	return storedCords;
     }
     public ArrayList<Cords> getPossibleMoves(){

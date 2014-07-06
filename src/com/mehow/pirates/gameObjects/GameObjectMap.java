@@ -7,7 +7,9 @@ import java.util.TreeMap;
 
 import android.graphics.Canvas;
 import android.graphics.RectF;
+import android.util.Log;
 
+import com.mehow.pirates.AnimationLogic;
 import com.mehow.pirates.Cords;
 
 public class GameObjectMap<T extends GameObject>  implements Serializable{
@@ -17,7 +19,7 @@ public class GameObjectMap<T extends GameObject>  implements Serializable{
 	 */
 	private static final long serialVersionUID = -913317125473723635L;
 
-	private TreeMap<Cords, T> goMap;
+	protected TreeMap<Cords, T> goMap;
 	
 	// lists for dead things, this needs improving as well
 	public ArrayList<T> deadGos;
@@ -41,54 +43,47 @@ public class GameObjectMap<T extends GameObject>  implements Serializable{
 	public boolean containsAt(Cords cords){
 		return goMap.containsKey(cords);
 	}
-	public void newTurn(){
-		for(T go : goMap.values()){
-			go.newTurn();
-		}
-	}
 	public void put(Cords cords, T go){
 		goMap.put(cords, go);
 	}
-	public void undoTurn(){
-		for (T mapObject : new ArrayList<T>(goMap.values())) {
-			Cords currentCords = mapObject.getLatestCords();
-			mapObject.undoTurn();
-			if (mapObject.exists() == false) {
-				goMap.remove(currentCords);
-			}else{
-				Cords newCords = mapObject.getLatestCords();
-				updateMap(currentCords, newCords);
-			}
-		}
-	}
 	
-	public void undoStep(){
-		for (T mapObject : new ArrayList<T>(goMap.values())) {
-			Cords currentCords = mapObject.getLatestCords();
-			mapObject.undoStep();
-			if (mapObject.exists() == false) {
-				goMap.remove(currentCords);
-			}else{
-				Cords newCords = mapObject.getLatestCords();
-				updateMap(currentCords, newCords);
-			}
-		}
-	}
-
-	public void kill(Cords cords){
-		deadGos.add(goMap.remove(cords));
-	}
-	
-	public void remove(Cords cords){
+	public void noLongerExists(Cords cords){
+		goMap.get(cords).noLongerExists();
 		goMap.remove(cords);
 	}
 	
-	public void makeStep(Cords oldCords, Cords newCords){
-		goMap.get(oldCords).makeStep(newCords);
-		updateMap(oldCords, newCords);
+	public void kill(Cords cords){
+		T go = goMap.remove(cords);
+		go.kill();
+		deadGos.add(go);
 	}
 	
-	private void updateMap(Cords oldCords, Cords newCords){
+	public void reviveLast(Cords cords){
+		T go = deadGos.remove(deadGos.size()-1);
+		go.revive(cords);
+		goMap.put(cords, go);
+	}
+	
+	public void undoMove(Cords startCords, Cords endCords, boolean atTurnStart){
+		if (startCords == null) {
+			noLongerExists(endCords);
+		} else if (endCords == null) {
+			reviveLast(startCords);
+		} else {
+			updateMap(endCords, startCords);
+		}
+	}
+	
+	public void place(Cords endCords, T go){
+		goMap.put(endCords, go);
+	}
+	
+	public void makeMove(Cords startCords, Cords endCords){
+		updateMap(startCords, endCords);
+	}
+	
+	public void updateMap(Cords oldCords, Cords newCords){
+		Log.i("MapUpdate","Removing from: "+oldCords+" to "+newCords);
 		T gameObject = goMap.remove(oldCords);
 		goMap.put(newCords, gameObject);
 	}
@@ -98,25 +93,9 @@ public class GameObjectMap<T extends GameObject>  implements Serializable{
 		return goMap.values();
 	}
 	
-	//--------------------------
-	//Animation
-	//--------------------------
-	public boolean checkMoreMoves(int interStepNumber) {
-		for (GameObject go : goMap.values()) {
-			if (go.hasMoreSteps(interStepNumber)) {
-				return true;
-			}
-		}
-		return false;
-	}
-	public void drawSelves(Canvas canvas, int interStepNo, float offsetAmount, RectF drawArea){
-		for(T go : goMap.values()){
-			go.drawSelf(canvas, interStepNo, offsetAmount, drawArea);
-		}
-	}
 	public void drawSelvesNoAnimate(Canvas canvas, RectF drawArea){
 		for(T go : goMap.values()){
-			go.drawSelfNoAnimate(canvas, drawArea);
+			AnimationLogic.drawSelfNoAnimate(canvas, drawArea, go.getCurrentCords(),go.getSelf(), go.getSelfPaint());
 		}
 	}
 }

@@ -4,12 +4,12 @@ import android.app.Activity;
 import android.graphics.Canvas;
 import android.graphics.RectF;
 import android.os.Bundle;
-import android.util.Log;
 
 import com.mehow.pirates.Consts;
 import com.mehow.pirates.Cords;
 import com.mehow.pirates.LevelInfo;
 import com.mehow.pirates.gameObjects.CordData;
+import com.mehow.pirates.gameObjects.GameObject;
 import com.mehow.pirates.gameObjects.GameObjectMap;
 import com.mehow.pirates.gameObjects.Goal;
 import com.mehow.pirates.gameObjects.MapData;
@@ -47,6 +47,11 @@ public class DesignLogic implements TileView.LogicCallbacks {
     
     private boolean deleteFlag;
 
+    @SuppressWarnings("rawtypes")//because I cant get generics to accept a non-raw type into generic functions. Look this up
+	private GameObjectMap selectedMap;
+    
+    private GameObject selectedConstructor; 
+    
     //constructor when creating level for first time (i.e. no android lifecycle funnyness)
     public DesignLogic(Activity callBackActivity, LevelInfo tLevelInfo){
         if (!(callBackActivity instanceof Callbacks)) {
@@ -112,8 +117,9 @@ public class DesignLogic implements TileView.LogicCallbacks {
     	GameObjectMap<?>[] goMaps = {mapData.enemyMap, mapData.shipMap, mapData.tileMap};
     	for(GameObjectMap<?> goMap : goMaps){
     		if(goMap.get(cords) != null){
-    			goMap.remove(cords);
+    			mapData.killStep(goMap, cords);
     			mCallbacks.updateScreen(false);
+    			//break so only top object is deleted
     			break;
     		}
     	}
@@ -127,16 +133,30 @@ public class DesignLogic implements TileView.LogicCallbacks {
 		case ENEMY:
 			legalPlacement = Enemy.isValidMove(cordData);
 			if(legalPlacement){
-				mapData.enemyMap.newTurn();
 				switch(gameObjectSubType){
 				case AENEMY:
-					mapData.enemyMap.put(cords, new Aenemy(cords, mapData));
+					mapData.beginStep();
+					if(mapData.enemyMap.containsAt(cords)){
+						mapData.killSubStep(mapData.enemyMap, cords);
+					}
+					mapData.placeGameObjectSubStep(mapData.enemyMap, new Aenemy(cords, mapData), cords);
+					mapData.endStep();
 					break;
 				case HENEMY:
-					mapData.enemyMap.put(cords, new Henemy(cords, mapData));
+					mapData.beginStep();
+					if(mapData.enemyMap.containsAt(cords)){
+						mapData.makeSubStepMove(mapData.enemyMap, cords, null);
+					}
+					mapData.placeGameObjectSubStep(mapData.enemyMap, new Henemy(cords, mapData), cords);
+					mapData.endStep();
 					break;
 				case VENEMY:
-					mapData.enemyMap.put(cords, new Venemy(cords, mapData));
+					mapData.beginStep();
+					if(mapData.enemyMap.containsAt(cords)){
+						mapData.makeSubStepMove(mapData.enemyMap, cords, null);
+					}
+					mapData.placeGameObjectSubStep(mapData.enemyMap, new Venemy(cords, mapData), cords);
+					mapData.endStep();
 					break;
 				default:
 					break;
@@ -144,12 +164,16 @@ public class DesignLogic implements TileView.LogicCallbacks {
 			}
 			break;
 		case SHIP:
-			legalPlacement = mapData.shipMap.getLivingCount()==0 && Ship.isValidMove(cordData);
+			legalPlacement = Ship.isValidMove(cordData);
 			if(legalPlacement){
-				mapData.shipMap.newTurn();
 				switch(gameObjectSubType){
 				case SHIP:
-					mapData.shipMap.put(cords, new Ship(cords, mapData));
+					mapData.beginStep();
+					if(mapData.shipMap.containsAt(cords)){
+						mapData.makeSubStepMove(mapData.shipMap, cords, null);
+					}
+					mapData.placeGameObjectSubStep(mapData.shipMap, new Ship(cords, mapData), cords);
+					mapData.endStep();
 					break;
 				default:
 					break;
@@ -161,22 +185,34 @@ public class DesignLogic implements TileView.LogicCallbacks {
 			case SEA:
 				legalPlacement = Sea.isValidMove(cordData);
 				if(legalPlacement){
-					mapData.tileMap.newTurn();
-					mapData.tileMap.put(cords, new Sea(cords));
+					mapData.beginStep();
+					if(mapData.tileMap.containsAt(cords)){
+					mapData.makeSubStepMove(mapData.tileMap, cords, null);
+					}
+					mapData.placeGameObjectSubStep(mapData.tileMap, new Sea(cords), cords);
+					mapData.endStep();
 				}
 				break;
 			case ROCK:
 				legalPlacement = Rock.isValidMove(cordData);
 				if(legalPlacement){
-					mapData.tileMap.newTurn();
-					mapData.tileMap.put(cords, new Rock(cords));
+					mapData.beginStep();
+					if(mapData.tileMap.containsAt(cords)){
+						mapData.makeSubStepMove(mapData.tileMap, cords, null);
+					}
+					mapData.placeGameObjectSubStep(mapData.tileMap, new Rock(cords), cords);
+					mapData.endStep();
 				}
 				break;
 			case GOAL:
 				legalPlacement = Goal.isValidMove(cordData);
 				if(legalPlacement){
-					mapData.tileMap.newTurn();
-					mapData.tileMap.put(cords, new Goal(cords));
+					mapData.beginStep();
+					if(mapData.tileMap.containsAt(cords)){
+					mapData.makeSubStepMove(mapData.tileMap, cords, null);
+					}
+					mapData.placeGameObjectSubStep(mapData.tileMap, new Goal(cords), cords);
+					mapData.endStep();
 				}
 				break;
 			default:
@@ -194,20 +230,7 @@ public class DesignLogic implements TileView.LogicCallbacks {
     }
 	
 	public void undo(){
-		switch(gameObjectSuperType){
-		case ENEMY:
-			mapData.enemyMap.undoTurn();
-			break;
-		case SHIP:
-			mapData.shipMap.undoTurn();
-			break;
-		case TILE:
-			mapData.tileMap.undoTurn();
-			break;
-		default:
-			Log.i("DesignLogic", "Undo failed, no super type selcected");
-			//throw
-		}
+		mapData.undo();
 		mCallbacks.updateScreen(false);
 	}
 
@@ -222,9 +245,32 @@ public class DesignLogic implements TileView.LogicCallbacks {
 	}
 
 	public void setGameObjectSuperType(Consts.GameObjectSuperTypes superType){
+		if(this.deleteFlag == true){
+			this.toggleDeleteFlag();
+		}
 		gameObjectSuperType = superType;
+		switch(superType){
+		case ENEMY:
+			selectedMap = mapData.enemyMap;
+			break;
+		case MINE:
+			selectedMap = mapData.mineMap;
+			break;
+		case SHIP:
+			selectedMap = mapData.shipMap;
+			break;
+		case TILE:
+			selectedMap = mapData.tileMap;
+			break;
+		default:
+			throw new RuntimeException("undefined super type");
+		}
 	}
 	public void setGameObjectSubType(Consts.GameObjectSubTypes subType){
+		if(this.deleteFlag == true){
+			this.toggleDeleteFlag();
+			
+		}
 		gameObjectSubType = subType;
 	}
 	

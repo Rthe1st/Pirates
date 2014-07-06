@@ -1,7 +1,6 @@
 package com.mehow.pirates.level;
 
 import java.util.ArrayList;
-import java.util.TreeMap;
 
 import android.app.Activity;
 import android.graphics.Canvas;
@@ -11,6 +10,7 @@ import android.util.Log;
 
 import com.mehow.pirates.Cords;
 import com.mehow.pirates.LevelInfo;
+import com.mehow.pirates.gameObjects.GameObject;
 import com.mehow.pirates.gameObjects.Goal;
 import com.mehow.pirates.gameObjects.MapData;
 import com.mehow.pirates.gameObjects.Mine;
@@ -33,6 +33,8 @@ public class GameLogic implements TileView.LogicCallbacks {
 
 		public void changeMineBtnState(boolean state);
 
+		public void changeMineButtonImage(GameStates state);
+
 		public void showGameOverDialog();
 
 		public void updateScreen(boolean animate);
@@ -43,14 +45,10 @@ public class GameLogic implements TileView.LogicCallbacks {
 	// game states
 	// see flow chart for details
 	public enum GameStates {
-		START_MOVE, MOVE_BEGUNG // after this only mine can be placed
-		, MOVE_COMPLETE // attivate move complete when player presses "end go"
-		, SHIP_MOVED, END_MOVE // when user has done all possible actions, can
-								// only click end from here
-		, MINE_MODE // when user clicks mine button in a valid game state
+		MOVE_COMPLETE // attivate move complete when player presses "end go"
+		, MOVE_MODE, MINE_MODE// the 2 main modes the user interacts with
 		, GAME_OVER // when user flops
 		, LEVEL_COMPLETE // when user anti-flops
-
 	};
 
 	private GameStates gameState;
@@ -67,7 +65,8 @@ public class GameLogic implements TileView.LogicCallbacks {
 	// state when the cord to move ship to is chosen
 
 	// access with set and release fucntions
-	private Cords selectedCords;
+	// private Cords selectedCords;
+	private GameObject selectedGameObject;
 
 	// constructor when creating level for first time (ie no android lifecycle
 	// funnyness)
@@ -80,7 +79,7 @@ public class GameLogic implements TileView.LogicCallbacks {
 		mCallbacks = (Callbacks) callBackActivity;
 		mineCount = levelInfo.mineLimit;
 		mapData = new MapData(levelInfo.mapData);
-		gameState = GameStates.START_MOVE;
+		gameState = GameStates.MOVE_MODE;
 	}
 
 	public GameLogic(Activity callBackActivity, Bundle bundle) {
@@ -106,7 +105,6 @@ public class GameLogic implements TileView.LogicCallbacks {
 		bundle.putInt("MINE_COUNT", mineCount);
 		bundle.putInt("SCORE", score);
 		bundle.putBundle("MAP_DATA", mapData.saveState());
-		bundle.putSerializable("SELECTED_CORDS", selectedCords);
 		bundle.putSerializable("LEVEL_INFO", levelInfo);
 		return bundle;
 	}
@@ -120,126 +118,124 @@ public class GameLogic implements TileView.LogicCallbacks {
 		turnCount = bundle.getInt("TURN_COUNT");
 		mineCount = bundle.getInt("MINE_COUNT");
 		score = bundle.getInt("SCORE");
-		selectedCords = (Cords) bundle.getSerializable("SELECTED_CORDS");
+		setSelectedGameObject((Ship) bundle.getSerializable("SELECTED_SHIP"));
 		levelInfo = (LevelInfo) bundle.getSerializable("LEVEL_INFO");
 	}
 
 	// Check GameState diagram file for explanation
 	public void undo() {
 		System.out.println("undoing with gameState: " + getGameState());
-		if (getGameState() == GameStates.START_MOVE && turnCount > 0) {
-			mapData.shipMap.undoTurn();
-			mapData.mineMap.undoTurn();
-			mapData.enemyMap.undoTurn();
-			setGameState(GameStates.START_MOVE);
-			changeTurnCount(-1);
-			mCallbacks.updateScreen(false);
-		} else if (getGameState() == GameStates.MOVE_BEGUNG) {
-			mapData.clearShipMoves();
-			setGameState(GameStates.START_MOVE);
-			mCallbacks.updateScreen(false);
-		} else if (getGameState() == GameStates.SHIP_MOVED) {
-			mapData.shipMap.undoStep();
-			setGameState(GameStates.START_MOVE);
-			mCallbacks.updateScreen(false);
-		} else if (getGameState() == GameStates.MINE_MODE) {
-			// go back to start of turn state
-			// FYI: mines for this turn wont of been placed yet, so don't undo
-			if (getLastGameState() == GameStates.SHIP_MOVED) {
-				mapData.shipMap.undoStep();
+		if (getGameState() == GameStates.MOVE_MODE
+				|| getGameState() == GameStates.MINE_MODE) {
+			if (mapData.currentTurnSteps.atTurnStart()) {
+				if (turnCount > 0) {
+					mapData.undo();
+					setGameState(GameStates.MOVE_MODE);
+					changeTurnCount(-1);
+				}
+			} else {
+				mapData.undo();
+				// this hack breaks if a undo shouldn tchange gamestate
+				setGameState(getLastGameState());
 			}
-			setGameState(GameStates.START_MOVE);
-			// mCallbacks.invalidateMap();
-			mCallbacks.updateScreen(false);
-		} else if (getGameState() == GameLogic.GameStates.END_MOVE) {
-			// undoStep can be called because mineMode -> endMove transition
-			// gives the ship a dummy move if it wasnt moved already
-			mapData.shipMap.undoStep();
-			mapData.mineMap.undoStep();
-			setGameState(GameLogic.GameStates.START_MOVE);
-			changeMineCount(1);
-			mCallbacks.changeMineBtnState(true);
-			mCallbacks.updateScreen(false);
 		}
+		if (getSelectedGameObject() != null) {
+			if (getSelectedGameObject().getClass().equals(Ship.class)) {
+				((Ship) getSelectedGameObject()).clearPossibleMoves();
+			}
+			setSelectedGameObject(null);
+		}
+		mCallbacks.updateScreen(false);
+	}
+
+	public boolean trySetSelected(GameObject gameObject) {
+		Log.i("GameLogic", "try set selected");
+		boolean success = gameObject.trySelect(gameState);
+		if (success)
+			selectedGameObject = gameObject;
+		return success;
 	}
 
 	public void onActionUp(Cords touchedCords) {
 		System.out.println("orignl state: " + gameState);
+		boolean updateRequired = false;
+		if (gameState.equals(GameStates.MOVE_COMPLETE)) {
+			return;
+		}
 		if (touchedCords.x < mapData.getMapWidth()
 				&& touchedCords.y < mapData.getMapHeight()) {
-			switch (gameState) {
-			case START_MOVE:
-				startMoveActionUp(touchedCords);
-				break;
-			case MOVE_BEGUNG:
-				moveBegunActionUp(touchedCords);
-				break;
-			case MINE_MODE:
-				mineModeActionUp(touchedCords);
-				break;
-			case MOVE_COMPLETE:
-				break;
-			case SHIP_MOVED:
-				break;
-			case END_MOVE:
-				break;
-			default:
-				throw new RuntimeException(
-						"onActionUp called whilst in invalid gameState: "
-								+ getGameState());
+			if (getSelectedGameObject() == null) {// if nothing is selected,
+				if (mapData.shipMap.containsAt(touchedCords)) {
+					updateRequired = trySetSelected(mapData.shipMap
+							.get(touchedCords));
+				}
+			} else {
+				selectedAction(touchedCords);
+				updateRequired = true;
 			}
 		}
-		if (getGameState() != getLastGameState()) {
-			Log.i("GameLogic", "gamestate change, screen updating");
+		if (updateRequired) {
+			Log.i("GameLogic", "updaterequired, screen updating");
 			mCallbacks.updateScreen(false);
 		}
 		Log.i("GameLogic", "end gamestate: " + getGameState());
 	}
 
-	public void startMoveActionUp(Cords touchedCords) {
-		if (mapData.shipMap.containsAt(touchedCords)) {
-			setGameState(GameStates.MOVE_BEGUNG);
-			Ship selectedShip = mapData.shipMap.get(touchedCords);
-			selectedShip.findPossibleMoves();
-			setSelectedCords(touchedCords);
+	public void selectedAction(Cords touchedCords) {
+		Log.i("GameLogic", "selected action");
+		if (getSelectedGameObject().getClass().equals(Ship.class)) {
+			shipActionUp(touchedCords, (Ship) getSelectedGameObject(),
+					gameState);
+
 		}
 	}
 
-	public void moveBegunActionUp(Cords touchedCords) {
-		Ship ship = mapData.shipMap.get(getSelectedCords());
-		if (ship.canMove(touchedCords)) {
-			setGameState(GameStates.SHIP_MOVED);
-			mapData.shipMap.makeStep(getSelectedCords(), touchedCords);
-			Tile postMoveTile = mapData.tileMap.get(touchedCords);
-			if (postMoveTile instanceof Goal) {
-				changeTurnCount(1);
-				setGameState(GameStates.LEVEL_COMPLETE);
-				callLevelCompleteDialog();
-			}
-		} else {// move was invalid, reset
-			setGameState(GameStates.START_MOVE);
+	public void shipActionUp(Cords touchedCords, Ship ship,
+			GameStates gameState) {
+		Log.i("GameLogic", "ship action up");
+		if (gameState.equals(GameStates.MOVE_MODE)
+				&& ship.canMove(touchedCords)) {
+			moveShip(ship, touchedCords);
+		} else if (gameState.equals(GameStates.MINE_MODE)
+				&& ship.isInMineCords(touchedCords)) {
+			placeMine(ship, touchedCords);
+		}else{
+			ship.clearPossibleMoves();
+			this.setSelectedGameObject(null);
 		}
-		ship.clearPossibleMoves();
+	}
+
+	private void placeMine(Ship selectedShip, Cords cords) {
+		Mine mine = new Mine(cords, selectedShip);
+		mapData.placeGameObjectStep(mapData.mineMap, mine, cords);
+		selectedShip.layMine();
+		changeMineCount(-1);
+		selectedShip.clearPossibleMoves();
 		// reset selected cord (as its now been "used")
-		setSelectedCords(null);
+		setSelectedGameObject(null);
+
 	}
 
-	public void mineModeActionUp(Cords touchedCords) {
-		// hack because UI doesn't account for multiple ships yet
-		// which is why getAllGo is OK
-		Ship ship = (new ArrayList<Ship>(mapData.shipMap.getAll())).get(0);
-		ship.findPossibleMineMoves();
-		if (ship.isInMineCords(touchedCords) && getMineCount() > 0) {
-			System.out.println("valid mine tile pressed");
-			mapData.mineMap.newTurn();
-			mapData.mineMap.put(touchedCords, new Mine(touchedCords));
-			changeMineCount(-1);
-			setGameState(GameStates.END_MOVE);
-			mCallbacks.changeMineBtnState(false);
+	private void moveShip(Ship selectedShip, Cords cords) {
+		Log.i("GameLogic", "move ship");
+		Log.i("GameLogic", "selected ship cords: "+selectedShip.getCurrentCords());
+		mapData.makeMoveStep(mapData.shipMap, selectedShip.getCurrentCords(),
+				cords);
+		Tile postMoveTile = mapData.tileMap.get(cords);
+		if (postMoveTile instanceof Goal) {
+			changeTurnCount(1);
+			setGameState(GameStates.LEVEL_COMPLETE);
+			callLevelCompleteDialog();
 		} else {
-			setGameState(getLastGameState());
+			this.mineButtonPressed();
+			for (Ship ship : mapData.shipMap.getAll()) {
+				boolean trySuccess = trySetSelected(ship);
+				if (trySuccess) {
+					//so only run on first ship successfully selected ship
+					break;
+				}
+			}
 		}
-		ship.clearPossibleMoves();
 	}
 
 	public void setGameState(GameStates state) {
@@ -247,6 +243,7 @@ public class GameLogic implements TileView.LogicCallbacks {
 		gameState = state;
 		System.out.println("Game state transition: " + lastGameState + " to "
 				+ gameState);
+		mCallbacks.changeMineButtonImage(state);
 	}
 
 	public GameStates getGameState() {
@@ -257,19 +254,31 @@ public class GameLogic implements TileView.LogicCallbacks {
 		return lastGameState;
 	}
 
-	public void setSelectedCords(Cords newCords) {
-		selectedCords = newCords;
+	public void setSelectedGameObject(GameObject gameObject) {
+		selectedGameObject = gameObject;
 	}
 
-	public Cords getSelectedCords() {
-		return selectedCords;
+	public GameObject getSelectedGameObject() {
+		return selectedGameObject;
 	}
 
 	public void animationFinished() {
 		Log.i("GameLogic", "Animation finsihed");
+		mapData.newTurn();
+		changeTurnCount(1);
 		// game over when ALL players/ships dead
 		if (mapData.shipMap.getLivingCount() > 0) {
-			setGameState(GameStates.START_MOVE);
+			setGameState(GameStates.MOVE_MODE);
+			// autimaticly select a random ship
+			// then auto select a ship, if any valid ones exist
+			for (Ship ship : mapData.shipMap.getAll()) {
+				boolean trySuccess = trySetSelected(ship);
+				if (trySuccess) {
+					break;// so only run on first ship successfully selected
+							// ship
+				}
+			}
+			mCallbacks.updateScreen(false);
 		} else {
 			setGameState(GameStates.GAME_OVER);
 			mCallbacks.showGameOverDialog();
@@ -290,6 +299,9 @@ public class GameLogic implements TileView.LogicCallbacks {
 		if (!(change < 0) || mineCount >= 0) {// this is an implies where
 												// (change>0) => (mineCount>=0)
 			mineCount += change;
+		} else {
+			throw new RuntimeException(
+					"changing mine count lead to invalid mineCount");
 		}
 		score = ScoreCalc.getScore(mineCount, turnCount);
 		mCallbacks.updateCounts(mineCount, turnCount, score);
@@ -306,13 +318,28 @@ public class GameLogic implements TileView.LogicCallbacks {
 		return mineCount;
 	}
 
+	// change to alternatie between movemode and minemode?
 	public void mineButtonPressed() {
-		if(getGameState()==GameLogic.GameStates.MINE_MODE){
-			setGameState(getLastGameState());
-			new ArrayList<Ship>(mapData.shipMap.getAll()).get(0).clearPossibleMoves();
-		}else{//in ship_moved or start_move
-			setGameState(GameLogic.GameStates.MINE_MODE);
-			new ArrayList<Ship>(mapData.shipMap.getAll()).get(0).findPossibleMineMoves();
+		if (getGameState() == GameLogic.GameStates.MINE_MODE) {
+			setGameState(GameStates.MOVE_MODE);
+			if (getSelectedGameObject() != null
+					&& getSelectedGameObject().getClass().equals(Ship.class)) {
+				Ship ship = (Ship) getSelectedGameObject();
+				ship.clearPossibleMoves();
+				if (ship.allowedToMove()) {
+					ship.findPossibleMoves();
+				}
+			}
+		} else {// in ship_moved or start_move
+			setGameState(GameStates.MINE_MODE);
+			if (getSelectedGameObject() != null
+					&& getSelectedGameObject().getClass().equals(Ship.class)) {
+				Ship ship = (Ship) getSelectedGameObject();
+				ship.clearPossibleMoves();
+				if (ship.allowedToMine()) {
+					ship.findPossibleMineMoves();
+				}
+			}
 		}
 		mCallbacks.updateScreen(false);
 	}
@@ -328,15 +355,18 @@ public class GameLogic implements TileView.LogicCallbacks {
 	public void endTurn() {
 		// for usability, this should be changed to work with other states
 		// will require "cleaning" of temp state stuff like move tiles
-		if (getGameState() == GameStates.START_MOVE
-				|| getGameState() == GameStates.SHIP_MOVED
-				|| getGameState() == GameStates.END_MOVE) {
+		if (getGameState() == GameStates.MOVE_MODE
+				|| getGameState() == GameStates.MINE_MODE) {
 			setGameState(GameStates.MOVE_COMPLETE);
+			if (getSelectedGameObject() != null
+					&& getSelectedGameObject().getClass().equals(Ship.class)) {
+				Ship ship = (Ship) getSelectedGameObject();
+				ship.clearPossibleMoves();
+				this.setSelectedGameObject(null);
+			}
 			// algorithm will give each enemy list of cords to move to (for
 			// animating)
 			enemyMoveAlgorithm();
-			mapData.shipMap.newTurn();
-			changeTurnCount(1);
 			mCallbacks.changeMineBtnState(true);
 			mCallbacks.updateScreen(true);
 		} else {
@@ -348,21 +378,19 @@ public class GameLogic implements TileView.LogicCallbacks {
 	// starts turn
 	// records each step
 	// ends turn
-	
+
 	private void enemyMoveAlgorithm() {
 		boolean enemyMoved;
 		boolean gameOver = false;
-		ArrayList<Enemy> enemies = new ArrayList<Enemy>(mapData.enemyMap.getAll());
+		ArrayList<Enemy> enemies = new ArrayList<Enemy>(
+				mapData.enemyMap.getAll());
 		// new turn must not take place between steps being added and steps
 		// being animated
 		// because animation code only read the latest turn
-		for (Enemy enemy : enemies) {
-			enemy.newTurn();
-		}
 		do {
 			enemyMoved = false;
 			for (Enemy enemy : enemies) {
-				Cords oldCords = enemy.getLatestCords();
+				Cords oldCords = enemy.getCurrentCords();
 				if (enemy.canMakeMove()) {
 					ArrayList<Ship> shipList = new ArrayList<Ship>(
 							mapData.shipMap.getAll());
@@ -373,14 +401,15 @@ public class GameLogic implements TileView.LogicCallbacks {
 												// a collection of ship cords as
 												// args
 					Cords newCords = enemy.computeMoveStep(ship
-							.getLatestCords());
-					mapData.enemyMap.makeStep(oldCords, newCords);
+							.getCurrentCords());
+					mapData.makeMoveStep(mapData.enemyMap, oldCords, newCords);
 					if (mapData.shipMap.containsAt(newCords)) {
 						mapData.shipMap.kill(newCords);
-						if (mapData.shipMap.getLivingCount() == 0) {// replace with
-															// gameLoigic
-															// isGameOver
-															// function?
+						if (mapData.shipMap.getLivingCount() == 0) {// replace
+																	// with
+							// gameLoigic
+							// isGameOver
+							// function?
 							gameOver = true;
 							break;
 						}
@@ -392,7 +421,7 @@ public class GameLogic implements TileView.LogicCallbacks {
 			}
 		} while (enemyMoved == true && gameOver == false);
 	}
-	
+
 	// if gameObject other then enemies were to be animated
 	// all the needs to be done:
 	// make sure they add steps for each square they move
@@ -407,8 +436,6 @@ public class GameLogic implements TileView.LogicCallbacks {
 			return false;
 		}
 	}
-	
-
 
 	// The order of drawing matters!
 	// first drawn will be covered up by later drawn
@@ -429,10 +456,8 @@ public class GameLogic implements TileView.LogicCallbacks {
 		} else {
 			mapData.enemyMap.drawSelvesNoAnimate(canvas, drawArea);
 		}
-		if (getGameState() == GameStates.MOVE_BEGUNG) {
-			mapData.shipMap.get(selectedCords).drawShipMoves(canvas, drawArea);
-		} else if (getGameState() == GameStates.MINE_MODE) {
-			(new ArrayList<Ship>(mapData.shipMap.getAll())).get(0).drawMineMoves(canvas, drawArea);
+		if (getSelectedGameObject() != null) {
+			getSelectedGameObject().selectedDraw(canvas, drawArea);
 		}
 	}
 }
