@@ -68,7 +68,7 @@ public class LevelsTable implements DataAccess{
 	//When customLevels has been set up, it may be better to loaded from some compressed binary format or such
 	protected void loadPresetXMLLevels(SQLiteDatabase database, Context context){
 		//System.out.println("ext");
-		int numOfLevels = 5;//number of levels in xml file
+		int numOfLevels = 10;//number of levels in xml file
 		ContentValues rowData = new ContentValues();
 		for(int i=1;i<=numOfLevels;i++){
 			//load "meta data"
