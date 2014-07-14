@@ -182,19 +182,19 @@ public class CustomLevelActivity extends FragmentActivity implements
 
 	@Override
 	public void enemyModeBtn(View view) {
-		designLogic.setGameObjectSuperType(Consts.GameObjectSuperTypes.ENEMY);
+		designLogic.setGameObjectSuperType(Consts.DesignModeSuperTypes.ENEMY);
 		setContentFragment(new DesignEnemySubModeOptions());
 	}
 
 	@Override
 	public void playerModeBtn(View view) {
-		designLogic.setGameObjectSuperType(Consts.GameObjectSuperTypes.SHIP);
+		designLogic.setGameObjectSuperType(Consts.DesignModeSuperTypes.SHIP);
 		setContentFragment(new DesignShipSubModeOptions());
 	}
 
 	@Override
 	public void tileModeBtn(View view) {
-		designLogic.setGameObjectSuperType(Consts.GameObjectSuperTypes.TILE);
+		designLogic.setGameObjectSuperType(Consts.DesignModeSuperTypes.TILE);
 		setContentFragment(new DesignTileSubModeOptions());
 	}
 
@@ -221,42 +221,52 @@ public class CustomLevelActivity extends FragmentActivity implements
 
 	@Override
 	public void venemyBtn(View view) {
-		designLogic.setGameObjectSubType(Consts.GameObjectSubTypes.VENEMY);
+		designLogic.setGameObjectSubType(Consts.DesignModeSubTypes.VENEMY);
 	}
 
 	@Override
 	public void henemyBtn(View view) {
-		designLogic.setGameObjectSubType(Consts.GameObjectSubTypes.HENEMY);
+		designLogic.setGameObjectSubType(Consts.DesignModeSubTypes.HENEMY);
 	}
 
 	@Override
 	public void aenemyBtn(View view) {
-		designLogic.setGameObjectSubType(Consts.GameObjectSubTypes.AENEMY);
+		designLogic.setGameObjectSubType(Consts.DesignModeSubTypes.AENEMY);
 	}
 
 	@Override
+	public void pathEnemyBtn(View view) {
+		designLogic.setGameObjectSubType(Consts.DesignModeSubTypes.PATHENEMY);
+	}
+	
+	@Override
 	public void rockBtn(View view) {
-		designLogic.setGameObjectSubType(Consts.GameObjectSubTypes.ROCK);
+		designLogic.setGameObjectSubType(Consts.DesignModeSubTypes.ROCK);
 	}
 
 	@Override
 	public void seaBtn(View view) {
-		designLogic.setGameObjectSubType(Consts.GameObjectSubTypes.SEA);
+		designLogic.setGameObjectSubType(Consts.DesignModeSubTypes.SEA);
 	}
 
 	@Override
 	public void goalBtn(View view) {
-		designLogic.setGameObjectSubType(Consts.GameObjectSubTypes.GOAL);
+		designLogic.setGameObjectSubType(Consts.DesignModeSubTypes.GOAL);
 	}
 
 	@Override
 	public void shipBtn(View view) {
-		designLogic.setGameObjectSubType(Consts.GameObjectSubTypes.SHIP);
+		designLogic.setGameObjectSubType(Consts.DesignModeSubTypes.SHIP);
 	}
 
 	@Override
 	public void deleteBtn(View view){
-		designLogic.toggleDeleteFlag();
+		designLogic.setGameObjectSuperType(Consts.DesignModeSuperTypes.DELETE);
+	}
+	
+	@Override
+	public void selectBtn(View view){
+		designLogic.setGameObjectSuperType(Consts.DesignModeSuperTypes.SELECT);
 	}
 	
 	@Override

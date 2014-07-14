@@ -21,7 +21,6 @@ import android.util.Log;
 //Log.i("MenuActivity","starting service");
 //startService(intent);
 
-
 public class LevelService extends IntentService{
 	
 	public LevelService(String name) {

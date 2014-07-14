@@ -13,6 +13,7 @@ import android.util.Log;
 
 import com.mehow.pirates.AnimationLogic;
 import com.mehow.pirates.AnimationSteps;
+import com.mehow.pirates.Consts;
 import com.mehow.pirates.Cords;
 import com.mehow.pirates.Moves;
 import com.mehow.pirates.R;
@@ -24,9 +25,11 @@ public class Ship implements GameObject, Serializable, Moves{
 
 	public static final String ENCODE_VALUE = "2";
 	
-	protected static Paint stdPaint;
 	protected static Paint disabledPaint;
 	private static Paint errorPaint;
+	public static Paint selectedPaint;
+	
+	private Paint selfPaint;
 	
     protected Cords currentCords;
     
@@ -52,14 +55,16 @@ public class Ship implements GameObject, Serializable, Moves{
         minePathAlgs = new MinePathAlgs(pathCallbacks);
         hasMoved = false;
         hasMined = false;
+        selfPaint = Consts.stdPaint;
 	}
     
-    public static void loadPaints(Resources r){
-    	stdPaint = new Paint();
+    public static void loadPaints(){
     	disabledPaint = new Paint();
     	errorPaint = new Paint();
     	disabledPaint.setARGB(255, 100, 100, 100);
 		errorPaint.setARGB(100, 100, 0, 100);
+		selectedPaint = new Paint();
+		selectedPaint.setARGB(255, 0, 255, 0);
     }
     
     public boolean allowedToMove(){
@@ -76,6 +81,7 @@ public class Ship implements GameObject, Serializable, Moves{
     	animationSteps.clearSteps(currentCords);
         hasMoved = false;
         hasMined = false;
+    	setSelfPaint(Consts.stdPaint);
     }
     @Override
     public void makeStep(Cords newCords){
@@ -103,6 +109,7 @@ public class Ship implements GameObject, Serializable, Moves{
     	animationSteps.clearSteps(currentCords);
     	hasMoved = false;
         hasMined = false;
+    	setSelfPaint(Consts.stdPaint);
     }
 
 	@Override
@@ -121,10 +128,12 @@ public class Ship implements GameObject, Serializable, Moves{
     
     public void layMine(){
     	hasMined = true;
+    	setSelfPaint(Ship.disabledPaint);
     }
 
     public void undoLayMine(){
     	hasMined = false;
+    	setSelfPaint(Consts.stdPaint);
     }
     
 	@Override
@@ -207,12 +216,12 @@ public class Ship implements GameObject, Serializable, Moves{
  	   return self;
     }
 
+    public void setSelfPaint(Paint newPaint){
+    	selfPaint = newPaint;
+    }
+    
     public Paint getSelfPaint(){
-    	if(this.hasMined && this.hasMoved){
-    		return disabledPaint;
-    	}else{
-        	return stdPaint;
-    	}
+        return selfPaint;
     }
     
     //load image to bitmap from drawable objects
@@ -288,5 +297,10 @@ public class Ship implements GameObject, Serializable, Moves{
 	@Override
 	public boolean exists() {
         return currentCords != null;
+	}
+	
+	@Override
+	public String getEncodedParameters(){
+		return "";
 	}
 }

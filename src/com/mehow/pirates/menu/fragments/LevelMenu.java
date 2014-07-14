@@ -46,7 +46,6 @@ public class LevelMenu extends Fragment{
         levelInfo = (LevelInfoLayout)view.findViewById(R.id.levelInfo);
         gridView = (GridView)view.findViewById(R.id.levelIcons);
         
-        //myAdapter = new LevelIconAdapter(mCallbacks.getLevelInfos(LevelsTable.LevelTypes.PRE_MADE));
         myAdapter = mCallbacks.getLevelIconAdapter();
         
         gridView.setAdapter(myAdapter);

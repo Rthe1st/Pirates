@@ -9,6 +9,7 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.RectF;
 
+import com.mehow.pirates.AnimationLogic;
 import com.mehow.pirates.Cords;
 import com.mehow.pirates.R;
 import com.mehow.pirates.level.GameLogic.GameStates;
@@ -17,17 +18,21 @@ public class Mine implements GameObject, Serializable{
 
 	private static Paint minePaint;
 	
+	private Paint selfPaint;
+	
 	private Ship creator;
 	
 	Cords currentCords;
 	
 	public Mine(Cords startCords){
 		currentCords = startCords;
+		selfPaint = Mine.minePaint;
 	}
 	
 	public Mine(Cords startCords, Ship ship){
 		currentCords = startCords;
 		creator = ship;
+		selfPaint = Mine.minePaint;
 	}
 	
 	@Override
@@ -48,7 +53,7 @@ public class Mine implements GameObject, Serializable{
     public static void loadSpecialBitmaps(Resources r){
 	   	self = BitmapFactory.decodeResource(r, R.drawable.mine);
 	   	minePaint = new Paint();
-		minePaint.setARGB(100, 0, 100, 0);
+		minePaint.setARGB(0, 0, 100, 0);
     }
 
 	@Override
@@ -82,11 +87,29 @@ public class Mine implements GameObject, Serializable{
 	
 	@Override
 	public Paint getSelfPaint() {
-		return minePaint;
+		return selfPaint;
 	}
 
 	@Override
 	public boolean exists() {
 		return currentCords == null;
+	}
+	
+    public void drawSelfNoAnimate(Canvas canvas, RectF drawArea) {
+    	InterStep currentStep = new InterStep(currentCords,currentCords);
+    	float xOffset = AnimationLogic.calculateCanvasOffset(currentStep.startCords.x, currentStep.endCords.x, 0, drawArea.width());
+    	float yOffset = AnimationLogic.calculateCanvasOffset(currentStep.startCords.y, currentStep.endCords.y, 0, drawArea.height());
+    	drawArea.offsetTo(xOffset, yOffset);
+        canvas.drawBitmap(getSelf(), null, drawArea, getSelfPaint());
+    }
+
+	@Override
+	public void setSelfPaint(Paint newPaint) {
+		selfPaint = newPaint;
+	}
+	
+	@Override
+	public String getEncodedParameters(){
+		return "";
 	}
 }

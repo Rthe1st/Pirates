@@ -6,12 +6,17 @@
     android:layout_height="match_parent"
     android:orientation="vertical" >
 
-    <fragment
-        android:id="@+id/designMapModeOptions"
-        android:name="com.mehow.pirates.level.fragments.custom_level.DesignMapModeOptions"
+    <HorizontalScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1" />
+        android:layout_weight="1" >
+
+        <fragment
+            android:id="@+id/designMapModeOptions"
+            android:name="com.mehow.pirates.level.fragments.custom_level.DesignMapModeOptions"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+    </HorizontalScrollView>
 
     <com.mehow.pirates.level.TileView
         android:id="@+id/map"
@@ -19,7 +24,7 @@
         android:layout_height="0dp"
         android:layout_weight="4" />
 
-    <FrameLayout
+    <HorizontalScrollView
         android:id="@+id/designMapSubModeOptions"
         android:layout_width="match_parent"
         android:layout_height="0dp"

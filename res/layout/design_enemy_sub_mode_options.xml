@@ -27,6 +27,13 @@
         android:text="Venemy" />
 
     <Button
+        android:id="@+id/pathEnemyBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:onClick="pathEnemyBtn"
+        android:text="PathEnemy" />
+
+    <Button
         android:id="@+id/undoBtn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

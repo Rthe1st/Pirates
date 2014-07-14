@@ -40,4 +40,11 @@
         android:onClick="deleteBtn"
         android:text="Delete" />
 
+    <Button
+        android:id="@+id/selectBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:onClick="selectBtn"
+        android:text="Select" />
+
 </LinearLayout>

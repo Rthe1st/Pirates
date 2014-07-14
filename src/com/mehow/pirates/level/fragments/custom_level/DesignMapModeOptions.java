@@ -21,6 +21,7 @@ public class DesignMapModeOptions extends Fragment{
     	public void tileModeBtn(View view);
     	public void settingsBtn(View view);
     	public void deleteBtn(View view);
+    	public void selectBtn(View view);
     };
 	
 	@Override

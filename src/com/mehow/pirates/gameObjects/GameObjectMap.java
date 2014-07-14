@@ -95,7 +95,7 @@ public class GameObjectMap<T extends GameObject>  implements Serializable{
 	
 	public void drawSelvesNoAnimate(Canvas canvas, RectF drawArea){
 		for(T go : goMap.values()){
-			AnimationLogic.drawSelfNoAnimate(canvas, drawArea, go.getCurrentCords(),go.getSelf(), go.getSelfPaint());
+			go.drawSelfNoAnimate(canvas, drawArea);
 		}
 	}
 }

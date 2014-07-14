@@ -61,4 +61,10 @@ public final class Cords implements Comparable<Cords>, Serializable {
 	public String toString() {
 		return "x: " + x + " y: " + y;
 	}
+	
+	public boolean isNextTo(Cords second){
+		boolean xAdjacent = this.x+1 == second.x ||this.x-1 == second.x;
+		boolean yAdjacent = this.y+1 == second.y ||this.y-1 == second.y;
+		return (xAdjacent && this.y == second.y) || (yAdjacent && this.x == second.x);
+	}
 }

@@ -11,8 +11,8 @@ import android.view.MotionEvent;
 import android.view.View;
 
 import com.mehow.pirates.AnimationLogic;
+import com.mehow.pirates.Consts;
 import com.mehow.pirates.Cords;
-import com.mehow.pirates.gameObjects.GameObject;
 import com.mehow.pirates.gameObjects.Goal;
 import com.mehow.pirates.gameObjects.Mine;
 import com.mehow.pirates.gameObjects.Rock;
@@ -22,6 +22,7 @@ import com.mehow.pirates.gameObjects.Tile;
 import com.mehow.pirates.gameObjects.enemys.Aenemy;
 import com.mehow.pirates.gameObjects.enemys.Enemy;
 import com.mehow.pirates.gameObjects.enemys.Henemy;
+import com.mehow.pirates.gameObjects.enemys.PathEnemy;
 import com.mehow.pirates.gameObjects.enemys.Venemy;
 
 //this call should be changed to deal with only the interaction with view objects (ie not game logic)
@@ -69,7 +70,8 @@ public class TileView extends View implements
 		defineMapProperties(w, h);
 		// load for each game object class
 		Resources r = this.getResources();
-		Ship.loadPaints(r);
+		Consts.loadPaints();
+		Ship.loadPaints();
 		Ship.loadSpecialBitmaps(r);
 		Mine.loadSpecialBitmaps(r);
 		Tile.loadPaints(r);
@@ -80,6 +82,7 @@ public class TileView extends View implements
 		Aenemy.loadSpecialBitmaps(r);
 		Venemy.loadSpecialBitmaps(r);
 		Henemy.loadSpecialBitmaps(r);
+		PathEnemy.loadSpecialBitmaps(r);
 	}
 
 	// get drawable objects of image in res

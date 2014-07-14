@@ -19,6 +19,7 @@ public class DesignEnemySubModeOptions extends Fragment {
     	public void venemyBtn(View view);
     	public void henemyBtn(View view);
     	public void aenemyBtn(View view);
+    	public void pathEnemyBtn(View view);
     	public void undoBtn(View view);
     };
 	

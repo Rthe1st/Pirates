@@ -70,7 +70,7 @@ public class MovementGameObjectMap<T extends Moves> extends GameObjectMap<T> imp
 	}
 	public void drawSelves(Canvas canvas, int interStepNo, float offsetAmount, RectF drawArea){
 		for(T go : goMap.values()){
-			AnimationLogic.drawSelf(canvas, go.getCurrentInterStep(interStepNo), offsetAmount, drawArea, go.getSelf(), go.getSelfPaint());
+			go.drawSelf(canvas, interStepNo, offsetAmount, drawArea);
 		}
 	}
 }

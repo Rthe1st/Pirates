@@ -186,7 +186,6 @@ public class GameLogic implements TileView.LogicCallbacks {
 		if (getSelectedGameObject().getClass().equals(Ship.class)) {
 			shipActionUp(touchedCords, (Ship) getSelectedGameObject(),
 					gameState);
-
 		}
 	}
 

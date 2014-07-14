@@ -5,6 +5,7 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.RectF;
 
+import com.mehow.pirates.AnimationLogic;
 import com.mehow.pirates.Cords;
 import com.mehow.pirates.level.GameLogic;
 
@@ -18,8 +19,11 @@ abstract public class Tile implements GameObject{
 	
 	public static Paint standardPaint;
 	
+	private Paint selfPaint;
+	
     public Tile(Cords cords){
     	currentCords = cords;
+    	selfPaint = Tile.standardPaint;
     }
     
 	public boolean trySelect(GameLogic.GameStates gameState) {
@@ -49,11 +53,29 @@ abstract public class Tile implements GameObject{
     }
     
     public Paint getSelfPaint(){
-    	return Tile.standardPaint;
+    	return selfPaint;
     }
     
     public static void loadPaints(Resources r){
     	standardPaint = new Paint();
     }
+    
+    public void drawSelfNoAnimate(Canvas canvas, RectF drawArea) {
+    	InterStep currentStep = new InterStep(currentCords,currentCords);
+    	float xOffset = AnimationLogic.calculateCanvasOffset(currentStep.startCords.x, currentStep.endCords.x, 0, drawArea.width());
+    	float yOffset = AnimationLogic.calculateCanvasOffset(currentStep.startCords.y, currentStep.endCords.y, 0, drawArea.height());
+    	drawArea.offsetTo(xOffset, yOffset);
+        canvas.drawBitmap(getSelf(), null, drawArea, getSelfPaint());
+    }
+    
+    @Override
+    public void setSelfPaint(Paint newPaint){
+    	selfPaint = newPaint;
+    }
+    
+    @Override
+	public String getEncodedParameters(){
+		return "";
+	}
     
 }

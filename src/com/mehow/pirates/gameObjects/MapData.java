@@ -14,6 +14,7 @@ import com.mehow.pirates.Steps;
 import com.mehow.pirates.gameObjects.enemys.Aenemy;
 import com.mehow.pirates.gameObjects.enemys.Enemy;
 import com.mehow.pirates.gameObjects.enemys.Henemy;
+import com.mehow.pirates.gameObjects.enemys.PathEnemy;
 import com.mehow.pirates.gameObjects.enemys.Venemy;
 
 //replaced by Map for each type of object (enemey, tile, ship, etc) --(group enemies in one list?)
@@ -116,14 +117,14 @@ public class MapData implements PathAlgorithms.Callbacks, Enemy.Callbacks, Seria
 		goMap.makeMove(startCords, endCords);
 	}
 
-	public <T extends GameObject, T2 extends T> void placeGameObjectStep(
-			GameObjectMap<T> goMap, T2 gameObject, Cords endCords) {
+	public <T extends GameObject> void placeGameObjectStep(
+			GameObjectMap<T> goMap, T gameObject, Cords endCords) {
 		goMap.place(endCords, gameObject);
 		currentTurnSteps.makeStep(goMap, gameObject, null, endCords);
 	}
 
-	public <T extends GameObject, T2 extends T> void placeGameObjectSubStep(
-			GameObjectMap<T> goMap, T2 gameObject, Cords endCords) {
+	public <T extends GameObject> void placeGameObjectSubStep(
+			GameObjectMap<T> goMap, T gameObject, Cords endCords) {
 		goMap.place(endCords, gameObject);
 		currentTurnSteps.makeSubStep(goMap, gameObject, null, endCords);
 	}
@@ -191,28 +192,46 @@ public class MapData implements PathAlgorithms.Callbacks, Enemy.Callbacks, Seria
 	}
 
 	private void interpretGameObjectCodes(Cords cords, String gameObjectCode) {
+		//encdode value ends in gameObjectCode when the first [ appears
+		//this allows gameObjects to be passed parameters
+		Log.i("MapData", "gameObjectCode "+gameObjectCode);
+		int indexOfParameterStart = gameObjectCode.indexOf("[");
+		String encodeValue;
+		String parameters;
+		if(indexOfParameterStart != -1){
+			encodeValue = gameObjectCode.substring(0, indexOfParameterStart);
+			parameters = gameObjectCode.substring(indexOfParameterStart);			
+		}else{
+			encodeValue = gameObjectCode;
+			parameters = "";
+		}
 		// to do: putin checks for bad maps, i.e. throw if a gameObject Map puts
 		// 2 objects on the same key
-		if (gameObjectCode.equals(Ship.ENCODE_VALUE)) {
+		if (encodeValue.equals(Ship.ENCODE_VALUE)) {
 			shipMap.put(cords, new Ship(cords, this));
 			Log.i("MapData", "ship placed at:"+cords);
-		} else if (gameObjectCode.equals(Venemy.ENCODE_VALUE)) {
+		} else if (encodeValue.equals(Venemy.ENCODE_VALUE)) {
 			System.out.println("venemy added");
 			enemyMap.put(cords, new Venemy(cords, (Enemy.Callbacks) this));
-		} else if (gameObjectCode.equals(Henemy.ENCODE_VALUE)) {
+		} else if (encodeValue.equals(Henemy.ENCODE_VALUE)) {
 			System.out.println("henemy added");
 			enemyMap.put(cords, new Henemy(cords, (Enemy.Callbacks) this));
-		} else if (gameObjectCode.equals(Aenemy.ENCODE_VALUE)) {
+		} else if (encodeValue.equals(Aenemy.ENCODE_VALUE)) {
 			System.out.println("aenemy added");
 			enemyMap.put(cords, new Aenemy(cords, (Enemy.Callbacks) this));
-		} else if (gameObjectCode.equals(Rock.ENCODE_VALUE)) {
+		} else if (encodeValue.equals(Rock.ENCODE_VALUE)) {
 			tileMap.put(cords, new Rock(cords));
-		} else if (gameObjectCode.equals(Sea.ENCODE_VALUE)) {
+		} else if (encodeValue.equals(Sea.ENCODE_VALUE)) {
 			tileMap.put(cords, new Sea(cords));
-			Log.i("MapData", "Sea added");
-		} else if (gameObjectCode.equals(Goal.ENCODE_VALUE)) {
+			//Log.i("MapData", "Sea added");
+		} else if (encodeValue.equals(Goal.ENCODE_VALUE)) {
 			tileMap.put(cords, new Goal(cords));
+		}else if(encodeValue.equals(PathEnemy.ENCODE_VALUE)){
+			Log.i("MapData","Path enemy added");
+			PathEnemy pathEnemy = new PathEnemy(cords, (Enemy.Callbacks) this, parameters);
+			enemyMap.put(cords, pathEnemy);
 		} else if (gameObjectCode.equals("")) {
+			Log.i("MapData", "nothing added");
 			// because empty tilees can appear on custom maps
 		} else {
 			throw new RuntimeException(
@@ -261,6 +280,7 @@ public class MapData implements PathAlgorithms.Callbacks, Enemy.Callbacks, Seria
 			if (currentGameObject != null) {
 				encodedCords += ":";
 				encodedCords += getGameObjectEncodeValue(currentGameObject);
+				encodedCords += currentGameObject.getEncodedParameters();
 			}
 		}
 		return encodedCords;

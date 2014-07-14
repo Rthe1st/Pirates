@@ -8,7 +8,9 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.RectF;
 
+import com.mehow.pirates.AnimationLogic;
 import com.mehow.pirates.AnimationSteps;
+import com.mehow.pirates.Consts;
 import com.mehow.pirates.Cords;
 import com.mehow.pirates.Moves;
 import com.mehow.pirates.gameObjects.CordData;
@@ -25,8 +27,8 @@ abstract public class Enemy implements GameObject, Moves {
 	protected int numOfMovesAllowed;
 	protected int numOfMovesLeft;
 	protected ArrayList<Cords> previousCords = new ArrayList<Cords>();
-
-	protected static Paint stdPaint;
+	
+	private Paint selfPaint;
 	
 	Cords currentCords;
 
@@ -46,6 +48,7 @@ abstract public class Enemy implements GameObject, Moves {
 		numOfMovesAllowed = tempNumOfMovesAllowed;
 		numOfMovesLeft = numOfMovesAllowed;
 		callbacks = tCallbacks;
+		selfPaint = Consts.stdPaint;
 	}
 
 	public Enemy(Cords cords, Callbacks tCallbacks) {
@@ -55,10 +58,11 @@ abstract public class Enemy implements GameObject, Moves {
 		numOfMovesAllowed = defNumOfMovesAllowed;
 		numOfMovesLeft = numOfMovesAllowed;
 		callbacks = tCallbacks;
+		selfPaint = Consts.stdPaint;
 	}
 	
 	public static void loadPaints(Resources r){
-    	stdPaint = new Paint();
+
     }
 
 	abstract public Cords computeMoveStep(Cords shipCords);
@@ -198,7 +202,7 @@ abstract public class Enemy implements GameObject, Moves {
 	public abstract Bitmap getSelf();
 
 	public Paint getSelfPaint() {
-		return stdPaint;
+		return selfPaint;
 	}
 
 	@Override
@@ -209,5 +213,38 @@ abstract public class Enemy implements GameObject, Moves {
     @Override
     public InterStep getCurrentInterStep(int interStepNo){
     	return animationSteps.getCurrentTurnInterStep(interStepNo);
+    }
+    
+    @Override
+	public String getEncodedParameters(){
+		return "";
+	}
+    
+    public void drawSelfNoAnimate(Canvas canvas, RectF drawArea) {
+    	InterStep currentStep = new InterStep(currentCords,currentCords);
+    	float xOffset = AnimationLogic.calculateCanvasOffset(currentStep.startCords.x, currentStep.endCords.x, 0, drawArea.width());
+    	float yOffset = AnimationLogic.calculateCanvasOffset(currentStep.startCords.y, currentStep.endCords.y, 0, drawArea.height());
+    	drawArea.offsetTo(xOffset, yOffset);
+        canvas.drawBitmap(getSelf(), null, drawArea, getSelfPaint());
+    }
+    
+    public void drawSelf(Canvas canvas, int interStepNo, float animationOffset, RectF drawArea) {
+    	InterStep currentStep;
+    	//-1 for 0 based step array
+    	//-1 because number of inter-steps is 1 less then number of steps
+    	if(animationSteps.hasMoreSteps(interStepNo)){
+    		currentStep = animationSteps.getCurrentTurnInterStep(interStepNo);
+    	}else{
+    		currentStep = new InterStep(getCurrentCords(),getCurrentCords());
+    	}
+    	float xOffset = AnimationLogic.calculateCanvasOffset(currentStep.startCords.x, currentStep.endCords.x, animationOffset, drawArea.width());
+    	float yOffset = AnimationLogic.calculateCanvasOffset(currentStep.startCords.y, currentStep.endCords.y, animationOffset, drawArea.height());
+    	//check this offsets in the right direction
+    	drawArea.offsetTo(xOffset, yOffset);
+        canvas.drawBitmap(getSelf(), null, drawArea, getSelfPaint());
+    }
+    
+    public void setSelfPaint(Paint newPaint){
+    	selfPaint  = newPaint;
     }
 }
