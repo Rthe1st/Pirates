@@ -34,6 +34,9 @@ abstract public class Enemy implements GameObject, Moves {
 
 	AnimationSteps animationSteps;
 
+	//0 when not frozen
+	protected int frozenTurnCount;
+	
 	// this is hackish, really should make use of a member var EnemyPathAlgs
 	protected final Callbacks callbacks;
 
@@ -49,6 +52,7 @@ abstract public class Enemy implements GameObject, Moves {
 		numOfMovesLeft = numOfMovesAllowed;
 		callbacks = tCallbacks;
 		selfPaint = Consts.stdPaint;
+		frozenTurnCount = 0;
 	}
 
 	public Enemy(Cords cords, Callbacks tCallbacks) {
@@ -59,6 +63,7 @@ abstract public class Enemy implements GameObject, Moves {
 		numOfMovesLeft = numOfMovesAllowed;
 		callbacks = tCallbacks;
 		selfPaint = Consts.stdPaint;
+		frozenTurnCount = 0;
 	}
 	
 	public static void loadPaints(Resources r){
@@ -102,7 +107,7 @@ abstract public class Enemy implements GameObject, Moves {
 	public static boolean isValidMove(CordData cordData) {
 		boolean validTile = cordData.tile instanceof Sea
 				|| cordData.tile instanceof Goal;
-		boolean notOccupied = cordData.enemy == null && cordData.mine == null;
+		boolean notOccupied = cordData.enemy == null;
 		if (validTile && notOccupied) {
 			return true;
 		} else {
@@ -123,10 +128,13 @@ abstract public class Enemy implements GameObject, Moves {
 	public void newTurn() {
 		animationSteps.clearSteps(currentCords);
 		resetMovesLeft();
+		if(frozenTurnCount > 0){
+			frozenTurnCount -= 1;
+		}
 	}
 
 	public boolean canMakeMove() {
-		return numOfMovesLeft >= 1;
+		return numOfMovesLeft > 0 && frozenTurnCount == 0;
 	}
 
 	@Override
@@ -154,6 +162,10 @@ abstract public class Enemy implements GameObject, Moves {
 		} else {
 			throw new RuntimeException("Out of Moves");
 		}
+	}
+	
+	public void hitMine(){
+		frozenTurnCount = Consts.MINE_FREEZE_TIME;
 	}
 
 	@Override
@@ -226,6 +238,7 @@ abstract public class Enemy implements GameObject, Moves {
     	float yOffset = AnimationLogic.calculateCanvasOffset(currentStep.startCords.y, currentStep.endCords.y, 0, drawArea.height());
     	drawArea.offsetTo(xOffset, yOffset);
         canvas.drawBitmap(getSelf(), null, drawArea, getSelfPaint());
+        drawFrozen(canvas, drawArea);
     }
     
     public void drawSelf(Canvas canvas, int interStepNo, float animationOffset, RectF drawArea) {
@@ -242,6 +255,15 @@ abstract public class Enemy implements GameObject, Moves {
     	//check this offsets in the right direction
     	drawArea.offsetTo(xOffset, yOffset);
         canvas.drawBitmap(getSelf(), null, drawArea, getSelfPaint());
+        drawFrozen(canvas, drawArea);
+    }
+    
+    private void drawFrozen(Canvas canvas, RectF drawArea){
+        if(this.frozenTurnCount != 0){
+        	Paint frozenPaint = new Paint();
+        	frozenPaint.setARGB(100, 0, 0, 255);
+        	canvas.drawArc(drawArea, 0, 90*frozenTurnCount, true, frozenPaint);
+        }
     }
     
     public void setSelfPaint(Paint newPaint){

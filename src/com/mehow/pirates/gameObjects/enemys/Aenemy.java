@@ -47,12 +47,20 @@ public class Aenemy extends Enemy implements Serializable{
     //------------
     
 	private static Bitmap self;
+
+	private static Bitmap frozen_self;
 	
     public static void loadSpecialBitmaps(Resources r){
  	   	self = BitmapFactory.decodeResource(r, R.drawable.aenemy_ship);
+ 	   	frozen_self = BitmapFactory.decodeResource(r, R.drawable.venemy_ship_frozen);
      }
 
+    @Override
     public Bitmap getSelf() {
- 	   return self;
+ 	   if(this.frozenTurnCount == 0){
+ 		   return self;
+ 	   }else{
+ 		   return frozen_self;
+ 	   }
     }
 }

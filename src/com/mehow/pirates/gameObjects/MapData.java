@@ -146,7 +146,9 @@ public class MapData implements PathAlgorithms.Callbacks, Enemy.Callbacks, Seria
 
 	// looks for string in format row|row|row
 	// row := tile,tile,...
-	// tile := gameObjectCode:gameObjectCode:...
+	// tile := gameObjectCode[parameters]:gameObjectCode[parameters]:...
+	//this parser is crudly written so nested items cannot reuse delimiters
+	//i.e. a parameter cannot contain |,:[ or ]
 	private void interpretMapData(String mapData) {
 		Log.i("MapData", "Interpreting map string: " + mapData);
 		int x = 0;

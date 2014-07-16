@@ -53,7 +53,7 @@ public class Mine implements GameObject, Serializable{
     public static void loadSpecialBitmaps(Resources r){
 	   	self = BitmapFactory.decodeResource(r, R.drawable.mine);
 	   	minePaint = new Paint();
-		minePaint.setARGB(0, 0, 100, 0);
+//		minePaint.setARGB(0, 0, 100, 0);
     }
 
 	@Override

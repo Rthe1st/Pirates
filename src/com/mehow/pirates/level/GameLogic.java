@@ -189,8 +189,7 @@ public class GameLogic implements TileView.LogicCallbacks {
 		}
 	}
 
-	public void shipActionUp(Cords touchedCords, Ship ship,
-			GameStates gameState) {
+	public void shipActionUp(Cords touchedCords, Ship ship, GameStates gameState) {
 		Log.i("GameLogic", "ship action up");
 		if (gameState.equals(GameStates.MOVE_MODE)
 				&& ship.canMove(touchedCords)) {
@@ -198,7 +197,7 @@ public class GameLogic implements TileView.LogicCallbacks {
 		} else if (gameState.equals(GameStates.MINE_MODE)
 				&& ship.isInMineCords(touchedCords)) {
 			placeMine(ship, touchedCords);
-		}else{
+		} else {
 			ship.clearPossibleMoves();
 			this.setSelectedGameObject(null);
 		}
@@ -217,7 +216,8 @@ public class GameLogic implements TileView.LogicCallbacks {
 
 	private void moveShip(Ship selectedShip, Cords cords) {
 		Log.i("GameLogic", "move ship");
-		Log.i("GameLogic", "selected ship cords: "+selectedShip.getCurrentCords());
+		Log.i("GameLogic",
+				"selected ship cords: " + selectedShip.getCurrentCords());
 		mapData.makeMoveStep(mapData.shipMap, selectedShip.getCurrentCords(),
 				cords);
 		Tile postMoveTile = mapData.tileMap.get(cords);
@@ -230,7 +230,7 @@ public class GameLogic implements TileView.LogicCallbacks {
 			for (Ship ship : mapData.shipMap.getAll()) {
 				boolean trySuccess = trySetSelected(ship);
 				if (trySuccess) {
-					//so only run on first ship successfully selected ship
+					// so only run on first ship successfully selected ship
 					break;
 				}
 			}
@@ -402,6 +402,10 @@ public class GameLogic implements TileView.LogicCallbacks {
 					Cords newCords = enemy.computeMoveStep(ship
 							.getCurrentCords());
 					mapData.makeMoveStep(mapData.enemyMap, oldCords, newCords);
+					if (mapData.mineMap.containsAt(newCords)) {
+						mapData.mineMap.kill(newCords);
+						enemy.hitMine();
+					}
 					if (mapData.shipMap.containsAt(newCords)) {
 						mapData.shipMap.kill(newCords);
 						if (mapData.shipMap.getLivingCount() == 0) {// replace

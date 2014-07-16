@@ -1,9 +1,11 @@
 package com.mehow.pirates;
 
+import java.io.Serializable;
+
 import com.mehow.pirates.gameObjects.GameObject;
 import com.mehow.pirates.gameObjects.GameObjectMap;
 
-public class GameObjectMove <T extends GameObject> {
+public class GameObjectMove <T extends GameObject> implements Serializable{
 
 	public final GameObjectMap<T> gameObjectMap;
 	private Cords startCords;

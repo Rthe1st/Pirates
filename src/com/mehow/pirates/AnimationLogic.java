@@ -118,27 +118,4 @@ public class AnimationLogic {
 		// System.out.println("startPoint: "+startPoint+" tileDim:"+tileDimension+" animationOffset: "+animationOffset);
 		return (startPoint * tileDimension);
 	}
-
-	public static void drawSelf(Canvas canvas, InterStep currentStep,
-			float animationOffset, RectF drawArea, Bitmap self, Paint paint) {
-		float xOffset = AnimationLogic.calculateCanvasOffset(
-				currentStep.startCords.x, currentStep.endCords.x,
-				animationOffset, drawArea.width());
-		float yOffset = AnimationLogic.calculateCanvasOffset(
-				currentStep.startCords.y, currentStep.endCords.y,
-				animationOffset, drawArea.height());
-		// check this offsets in the right direction
-		drawArea.offsetTo(xOffset, yOffset);
-		canvas.drawBitmap(self, null, drawArea, paint);
-	}
-
-	public static void drawSelfNoAnimate(Canvas canvas, RectF drawArea,
-			Cords currentCords, Bitmap self, Paint paint) {
-		float xOffset = AnimationLogic.calculateCanvasOffset(currentCords.x,
-				currentCords.x, drawArea.width());
-		float yOffset = AnimationLogic.calculateCanvasOffset(currentCords.y,
-				currentCords.y, drawArea.height());
-		drawArea.offsetTo(xOffset, yOffset);
-		canvas.drawBitmap(self, null, drawArea, paint);
-	}
 }

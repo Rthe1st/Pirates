@@ -7,6 +7,8 @@ public class Consts {
 	public final static int  mapInfoTutIndex = 6;
 	public final static int mapInfoTutSlidesNumIndex = 7;
 	
+	public static final int MINE_FREEZE_TIME = 4;
+	
 	//note, when time, make a "meta Game object class", which can be used to generate all this crap
 	//from a gameobject file, reducing touch points when adding new objects
 	public static enum DesignModeSuperTypes{

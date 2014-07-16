@@ -3,6 +3,7 @@ package com.mehow.pirates.level;
 import android.app.Activity;
 import android.graphics.Canvas;
 import android.graphics.RectF;
+import android.graphics.drawable.Drawable.Callback;
 import android.os.Bundle;
 import android.util.Log;
 
@@ -96,7 +97,9 @@ public class DesignLogic implements TileView.LogicCallbacks {
 		Bundle bundle = new Bundle();
 		bundle.putBundle("MAP_DATA", mapData.saveState());
 		bundle.putString("SUPER_MODE", designModeSuperType.toString());
-		bundle.putString("SUB_MODE", designModeSubType.toString());
+		if(designModeSubType != null){
+			bundle.putString("SUB_MODE", designModeSubType.toString());
+		}
 		bundle.putSerializable("LEVEL_INFO", levelInfo);
 		return bundle;
 	}
@@ -104,9 +107,10 @@ public class DesignLogic implements TileView.LogicCallbacks {
 	private void loadSelf(Bundle bundle) {
 		designModeSuperType = Consts.DesignModeSuperTypes.valueOf(bundle
 				.getString("SUPER_MODE"));
-		designModeSubType = Consts.DesignModeSubTypes.valueOf(bundle
+		if(bundle.getString("SUB_MODE") != null){
+			designModeSubType = Consts.DesignModeSubTypes.valueOf(bundle
 				.getString("SUB_MODE"));
-		bundle.getString("SUB_MODE");
+		}
 		levelInfo = (LevelInfo) bundle.getSerializable("LEVEL_INFO");
 	}
 
@@ -173,17 +177,21 @@ public class DesignLogic implements TileView.LogicCallbacks {
 	
 	private void selectedAction(Cords touchedCords){
 		if(selectedGameObject.getClass().equals(PathEnemy.class)){
-			if(selectedGameObject.getCurrentCords()==touchedCords){
-				selectedGameObject.setSelfPaint(Consts.stdPaint);
-				selectedGameObject = null;				
+			if(selectedGameObject == mapData.enemyMap.get(touchedCords)){
+				deselectGameObject();			
 			}else{
 				PathEnemy pathEnemy = (PathEnemy)selectedGameObject;
 				pathEnemy.changeMoveCords(touchedCords);
 			}
 		}else{
-			selectedGameObject.setSelfPaint(Consts.stdPaint);
-			selectedGameObject = null;
+			deselectGameObject();
 		}
+	}
+	
+	private void deselectGameObject(){
+		assert(selectedGameObject != null);
+		selectedGameObject.setSelfPaint(Consts.stdPaint);
+		selectedGameObject = null;
 	}
 
 	// reflectifying the enumns would get rid of a lot of switches
@@ -317,6 +325,10 @@ public class DesignLogic implements TileView.LogicCallbacks {
 	public void setGameObjectSuperType(Consts.DesignModeSuperTypes superType) {
 		designModeSuperType = superType;
 		designModeSubType = null;
+		if(designModeSuperType != Consts.DesignModeSuperTypes.SELECT && selectedGameObject != null){
+			deselectGameObject();
+			this.mCallbacks.updateScreen(false);
+		}
 		/*
 		 * switch (superType) { case ENEMY: selectedMap = mapData.enemyMap;
 		 * break; case MINE: selectedMap = mapData.mineMap; break; case SHIP:
