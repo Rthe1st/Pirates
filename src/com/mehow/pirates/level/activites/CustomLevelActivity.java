@@ -57,7 +57,8 @@ public class CustomLevelActivity extends FragmentActivity implements
 		Intent userChoice = getIntent();
 		levelId = userChoice.getLongExtra(MenuActivity.LEVEL_ID_EXTRA, -1);
 		databaseHelper = DatabaseHelper.getInstance(this);
-		Log.i("CustomLevelActivity", "levelid extra: "+levelId);
+		Consts.loadAnimations(this.getResources());
+		Log.i("CustomLevelActivity", "levelid extra: " + levelId);
 		// --------
 		if (savedInstanceState != null) {
 			designLogic = new DesignLogic(this,
@@ -177,24 +178,31 @@ public class CustomLevelActivity extends FragmentActivity implements
 
 	@Override
 	public void undoBtn(View undoBtn) {
-		designLogic.undo();
+		TileView tileView = (TileView) findViewById(R.id.map);
+		Runnable userInput = new Runnable() {
+			@Override
+			public void run() {
+				designLogic.undo();
+			}
+		};
+		tileView.addUserInput(userInput);
 	}
 
 	@Override
 	public void enemyModeBtn(View view) {
-		designLogic.setGameObjectSuperType(Consts.DesignModeSuperTypes.ENEMY);
+		setGameObjectSuperType(Consts.DesignModeSuperTypes.ENEMY);
 		setContentFragment(new DesignEnemySubModeOptions());
 	}
 
 	@Override
 	public void playerModeBtn(View view) {
-		designLogic.setGameObjectSuperType(Consts.DesignModeSuperTypes.SHIP);
+		setGameObjectSuperType(Consts.DesignModeSuperTypes.SHIP);
 		setContentFragment(new DesignShipSubModeOptions());
 	}
 
 	@Override
 	public void tileModeBtn(View view) {
-		designLogic.setGameObjectSuperType(Consts.DesignModeSuperTypes.TILE);
+		setGameObjectSuperType(Consts.DesignModeSuperTypes.TILE);
 		setContentFragment(new DesignTileSubModeOptions());
 	}
 
@@ -221,73 +229,103 @@ public class CustomLevelActivity extends FragmentActivity implements
 
 	@Override
 	public void venemyBtn(View view) {
-		designLogic.setGameObjectSubType(Consts.DesignModeSubTypes.VENEMY);
+		setGameObjectSubType(Consts.DesignModeSubTypes.VENEMY);
 	}
 
 	@Override
 	public void henemyBtn(View view) {
-		designLogic.setGameObjectSubType(Consts.DesignModeSubTypes.HENEMY);
+		setGameObjectSubType(Consts.DesignModeSubTypes.HENEMY);
 	}
 
 	@Override
 	public void aenemyBtn(View view) {
-		designLogic.setGameObjectSubType(Consts.DesignModeSubTypes.AENEMY);
+		setGameObjectSubType(Consts.DesignModeSubTypes.AENEMY);
 	}
 
 	@Override
 	public void pathEnemyBtn(View view) {
-		designLogic.setGameObjectSubType(Consts.DesignModeSubTypes.PATHENEMY);
+		setGameObjectSubType(Consts.DesignModeSubTypes.PATHENEMY);
 	}
-	
+
 	@Override
 	public void rockBtn(View view) {
-		designLogic.setGameObjectSubType(Consts.DesignModeSubTypes.ROCK);
+		setGameObjectSubType(Consts.DesignModeSubTypes.ROCK);
 	}
 
 	@Override
 	public void seaBtn(View view) {
-		designLogic.setGameObjectSubType(Consts.DesignModeSubTypes.SEA);
+		setGameObjectSubType(Consts.DesignModeSubTypes.SEA);
 	}
 
 	@Override
 	public void goalBtn(View view) {
-		designLogic.setGameObjectSubType(Consts.DesignModeSubTypes.GOAL);
+		setGameObjectSubType(Consts.DesignModeSubTypes.GOAL);
 	}
 
 	@Override
 	public void shipBtn(View view) {
-		designLogic.setGameObjectSubType(Consts.DesignModeSubTypes.SHIP);
+		setGameObjectSubType(Consts.DesignModeSubTypes.SHIP);
 	}
 
 	@Override
-	public void deleteBtn(View view){
-		designLogic.setGameObjectSuperType(Consts.DesignModeSuperTypes.DELETE);
+	public void deleteBtn(View view) {
+		setGameObjectSuperType(Consts.DesignModeSuperTypes.DELETE);
 	}
-	
+
 	@Override
-	public void selectBtn(View view){
-		designLogic.setGameObjectSuperType(Consts.DesignModeSuperTypes.SELECT);
+	public void selectBtn(View view) {
+		setGameObjectSuperType(Consts.DesignModeSuperTypes.SELECT);
 	}
-	
-	@Override
-	public void updateScreen(boolean animate) {
+
+	private void setGameObjectSuperType(final Consts.DesignModeSuperTypes type) {
 		TileView tileView = (TileView) findViewById(R.id.map);
-		tileView.animationLogic.updateScreen(animate);
+		Runnable userInput = new Runnable() {
+			@Override
+			public void run() {
+				designLogic.setGameObjectSuperType(type);
+			}
+		};
+		tileView.addUserInput(userInput);
 	}
 
+	private void setGameObjectSubType(final Consts.DesignModeSubTypes type) {
+		TileView tileView = (TileView) findViewById(R.id.map);
+		Runnable userInput = new Runnable() {
+			@Override
+			public void run() {
+				designLogic.setGameObjectSubType(type);
+			}
+		};
+		tileView.addUserInput(userInput);
+	}
+	
 	@Override
-	public void updateLevelInfo(int bronze, int silver, int gold, String name,
-			int mines) {
-		designLogic.updateLevelInfo(bronze, silver, gold, name, mines);
+	public void updateLevelInfo(final int bronze, final int silver,
+			final int gold, final String name, final int mines) {
+		TileView tileView = (TileView) findViewById(R.id.map);
+		Runnable userInput = new Runnable() {
+			@Override
+			public void run() {
+				designLogic.updateLevelInfo(bronze, silver, gold, name, mines);
+			}
+		};
+		tileView.addUserInput(userInput);
 	}
 
 	@Override
 	public LevelInfo getLevelInfo() {
 		return designLogic.getLevelInfo();
 	}
-	
+
 	@Override
-	public void showToast(String text){
-		Toast.makeText(this, text, Toast.LENGTH_SHORT).show();
+	public void showToast(final String text) {
+		Runnable uiRunnable = new Runnable() {
+			@Override
+			public void run() {
+				Toast.makeText(CustomLevelActivity.this, text,
+						Toast.LENGTH_SHORT).show();
+			}
+		};
+		this.runOnUiThread(uiRunnable);
 	}
 }

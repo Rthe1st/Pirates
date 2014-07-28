@@ -1,5 +1,18 @@
 package com.mehow.pirates;
 
+import com.mehow.pirates.animation.ExplosionSequence;
+import com.mehow.pirates.gameObjects.Goal;
+import com.mehow.pirates.gameObjects.Mine;
+import com.mehow.pirates.gameObjects.Rock;
+import com.mehow.pirates.gameObjects.Sea;
+import com.mehow.pirates.gameObjects.Ship;
+import com.mehow.pirates.gameObjects.Tile;
+import com.mehow.pirates.gameObjects.enemys.Aenemy;
+import com.mehow.pirates.gameObjects.enemys.Henemy;
+import com.mehow.pirates.gameObjects.enemys.PathEnemy;
+import com.mehow.pirates.gameObjects.enemys.Venemy;
+
+import android.content.res.Resources;
 import android.graphics.Paint;
 
 
@@ -28,4 +41,21 @@ public class Consts {
 		stdPaint = new Paint();
 	}
 
+	public static void loadAnimations(Resources resources) {
+		Consts.loadPaints();
+		Ship.loadPaints();
+		Ship.loadAnimationDrawables(resources);
+		Rock.loadAnimationDrawables(resources);
+		Sea.loadAnimationDrawables(resources);
+		Mine.loadAnimationDrawables(resources);
+		Tile.loadPaints(resources);
+		Goal.loadAnimationDrawables(resources);
+		Aenemy.loadAnimationDrawables(resources);
+		Venemy.loadAnimationDrawables(resources);
+		Henemy.loadAnimationDrawables(resources);
+		PathEnemy.loadAnimationDrawables(resources);
+		PathEnemy.loadSpecialBitmaps(resources);
+		ExplosionSequence.loadDrawable(resources);
+	}
+	
 }

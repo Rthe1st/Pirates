@@ -24,10 +24,10 @@ public interface GameObject {
    // public void drawSelf(Canvas canvas, int interStepNo, float animationOffset, RectF drawArea);
    // public void drawSelfNoAnimate(Canvas canvas, RectF drawArea);
     public void selectedDraw(Canvas canvas, RectF drawArea);
-    public Bitmap getSelf();
     public Paint getSelfPaint();
     public void setSelfPaint(Paint newPaint);
     
     public boolean exists();
     public void drawSelfNoAnimate(Canvas canvas, RectF drawArea);
+    public void update(long time);
 }

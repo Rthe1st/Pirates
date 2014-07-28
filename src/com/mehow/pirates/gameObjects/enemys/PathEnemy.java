@@ -1,6 +1,7 @@
 package com.mehow.pirates.gameObjects.enemys;
 
 import java.io.Serializable;
+import java.util.HashMap;
 
 import android.content.res.Resources;
 import android.graphics.Bitmap;
@@ -9,12 +10,15 @@ import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.RectF;
+import android.graphics.drawable.AnimationDrawable;
 import android.util.Log;
 
 import com.mehow.pirates.AnimationLogic;
 import com.mehow.pirates.Consts;
 import com.mehow.pirates.Cords;
 import com.mehow.pirates.R;
+import com.mehow.pirates.animation.AnimationSequence;
+import com.mehow.pirates.gameObjects.Goal.AnimationType;
 
 public class PathEnemy extends Enemy implements Serializable {
 	protected static int defNumOfMovesAllowed = 1;
@@ -35,25 +39,27 @@ public class PathEnemy extends Enemy implements Serializable {
 	private boolean loop;
 	private int direction;
 
+	private PathEnemy(Cords cords, int tempNumOfMovesAllowed, Callbacks tCallbacks){
+		super(cords, tempNumOfMovesAllowed, tCallbacks);
+		pathData = new PathData();
+		loadAnimations();
+		currentAnimation = animations.get(AnimationType.STATIONARY);
+	}
+	
 	// move horizontaly before vert
 	public PathEnemy(Cords cords, int tempNumOfMovesAllowed,
 			Callbacks tCallbacks, String parameters) {
-		super(cords, tempNumOfMovesAllowed, tCallbacks);
-		pathData = new PathData();
+		this(cords, tempNumOfMovesAllowed, tCallbacks);
 		parseParameters(parameters);
 		moveIndex = startIndex;
 	}
 
 	public PathEnemy(Cords cords, Callbacks tCallbacks, String parameters) {
-		super(cords, defNumOfMovesAllowed, tCallbacks);
-		pathData = new PathData();		
-		parseParameters(parameters);
-		moveIndex = startIndex;
+		this(cords, defNumOfMovesAllowed, tCallbacks, parameters);
 	}
 
 	public PathEnemy(Cords cords, Callbacks tCallbacks) {
-		super(cords, defNumOfMovesAllowed, tCallbacks);
-		pathData = new PathData();
+		this(cords, defNumOfMovesAllowed, tCallbacks);
 		pathData.addHeadCords(cords);
 		startIndex = 0;
 		moveIndex = startIndex;
@@ -252,12 +258,27 @@ public class PathEnemy extends Enemy implements Serializable {
 		}
 	}
 
-	@Override
-	public Bitmap getSelf() {
-		if (this.frozenTurnCount == 0) {
-			return self;
-		} else {
-			return frozen_self;
-		}
-	}
+    //------------
+    //ANIMATION
+    //------------
+ 	
+    private static HashMap<AnimationType, AnimationDrawable> animationDrawables;
+    protected HashMap<AnimationType, AnimationSequence> animations;
+    
+    public static void loadAnimationDrawables(Resources resources){
+    	animationDrawables = new HashMap<AnimationType, AnimationDrawable>();
+    	animationDrawables.put(AnimationType.STATIONARY, (AnimationDrawable)resources.getDrawable(R.drawable.pathenemy_stationary));
+    	animationDrawables.put(AnimationType.FROZEN, (AnimationDrawable)resources.getDrawable(R.drawable.pathenemy_frozen));
+    }
+    
+    private void loadAnimations(){
+    	animations = new HashMap<AnimationType, AnimationSequence>();
+    	animations.put(AnimationType.STATIONARY, new AnimationSequence(animationDrawables.get(AnimationType.STATIONARY)));
+    	animations.put(AnimationType.FROZEN, new AnimationSequence(animationDrawables.get(AnimationType.FROZEN)));
+    }
+    
+    public void setAnimationType(AnimationType newType){
+    	currentAnimation.reset();
+    	currentAnimation = animations.get(newType);
+    }
 }

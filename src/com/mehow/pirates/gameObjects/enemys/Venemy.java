@@ -2,13 +2,15 @@ package com.mehow.pirates.gameObjects.enemys;
 
 
 import java.io.Serializable;
+import java.util.HashMap;
 
 import android.content.res.Resources;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
+import android.graphics.drawable.AnimationDrawable;
 
 import com.mehow.pirates.Cords;
 import com.mehow.pirates.R;
+import com.mehow.pirates.animation.AnimationSequence;
+import com.mehow.pirates.gameObjects.enemys.Enemy.AnimationType;
 
 public class Venemy extends Enemy implements Serializable{
 	/**
@@ -23,9 +25,11 @@ public class Venemy extends Enemy implements Serializable{
 	
 	public Venemy(Cords cords, int tempNumOfMovesAllowed, Callbacks tCallbacks) {
 		super(cords, tempNumOfMovesAllowed, tCallbacks);
+		loadAnimations();
+		currentAnimation = animations.get(AnimationType.STATIONARY);
 	}
 	public Venemy(Cords cords, Callbacks tCallbacks) {
-		super(cords, defNumOfMovesAllowed, tCallbacks);
+		this(cords, defNumOfMovesAllowed, tCallbacks);
 	}
 
 	public Cords computeMoveStep(Cords shipCords){
@@ -40,21 +44,18 @@ public class Venemy extends Enemy implements Serializable{
     //------------
     //ANIMATION
     //------------
+ 	
+    private static HashMap<AnimationType, AnimationDrawable> animationDrawables;
     
-	private static Bitmap self;
-	private static Bitmap frozen_self;
-	
-    public static void loadSpecialBitmaps(Resources r){
- 	   	self = BitmapFactory.decodeResource(r, R.drawable.venemy_ship);
- 	   	frozen_self = BitmapFactory.decodeResource(r, R.drawable.venemy_ship_frozen);
-     }
-
-    @Override
-    public Bitmap getSelf() {
- 	   if(this.frozenTurnCount == 0){
- 		   return self;
- 	   }else{
- 		   return frozen_self;
- 	   }
+    public static void loadAnimationDrawables(Resources resources){
+    	animationDrawables = new HashMap<AnimationType, AnimationDrawable>();
+    	animationDrawables.put(AnimationType.STATIONARY, (AnimationDrawable)resources.getDrawable(R.drawable.venemy_stationary));
+    	animationDrawables.put(AnimationType.FROZEN, (AnimationDrawable)resources.getDrawable(R.drawable.venemy_frozen));
+    }
+    
+    private void loadAnimations(){
+    	animations = new HashMap<AnimationType, AnimationSequence>();
+    	animations.put(AnimationType.STATIONARY, new AnimationSequence(animationDrawables.get(AnimationType.STATIONARY)));
+    	animations.put(AnimationType.FROZEN, new AnimationSequence(animationDrawables.get(AnimationType.FROZEN)));
     }
 }

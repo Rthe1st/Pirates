@@ -2,6 +2,7 @@ package com.mehow.pirates.level.activites;
 
 import android.content.Intent;
 import android.content.res.Configuration;
+import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
@@ -13,8 +14,19 @@ import android.widget.ImageButton;
 import com.mehow.pirates.Consts;
 import com.mehow.pirates.LevelInfo;
 import com.mehow.pirates.R;
+import com.mehow.pirates.animation.ExplosionSequence;
 import com.mehow.pirates.database.DatabaseHelper;
 import com.mehow.pirates.database.LevelsTable;
+import com.mehow.pirates.gameObjects.Goal;
+import com.mehow.pirates.gameObjects.Mine;
+import com.mehow.pirates.gameObjects.Rock;
+import com.mehow.pirates.gameObjects.Sea;
+import com.mehow.pirates.gameObjects.Ship;
+import com.mehow.pirates.gameObjects.Tile;
+import com.mehow.pirates.gameObjects.enemys.Aenemy;
+import com.mehow.pirates.gameObjects.enemys.Henemy;
+import com.mehow.pirates.gameObjects.enemys.PathEnemy;
+import com.mehow.pirates.gameObjects.enemys.Venemy;
 import com.mehow.pirates.level.GameLogic;
 import com.mehow.pirates.level.TileView;
 import com.mehow.pirates.level.TileView.LogicCallbacks;
@@ -56,6 +68,7 @@ public class LevelActivity extends FragmentActivity implements
 		Intent userChoice = getIntent();
 		mapNum = userChoice.getLongExtra(MenuActivity.LEVEL_ID_EXTRA, -1);
 		databaseHelper = DatabaseHelper.getInstance(this);
+		Consts.loadAnimations(this.getResources());
 		if (savedInstanceState != null) {
 			gameLogic = new GameLogic(this,
 					savedInstanceState.getBundle("GAME_LOGIC"));
@@ -76,7 +89,7 @@ public class LevelActivity extends FragmentActivity implements
 			setContentView(R.layout.map_vertical);
 		}
 		ImageButton mineButton = ((ImageButton) this.findViewById(R.id.mineBtn));
-		//lol super hack
+		// lol super hack
 		mineButton.setImageResource(R.drawable.ship_btn);
 	}
 
@@ -84,9 +97,16 @@ public class LevelActivity extends FragmentActivity implements
 	public void onStart() {
 		super.onStart();
 		System.out.println("started");
-		gameLogic.changeTurnCount(0);
-		gameLogic.changeMineCount(0);
-		setHighscoreDisplay();
+		TileView tileView = (TileView) findViewById(R.id.map);
+		Runnable userInput = new Runnable() {
+			@Override
+			public void run() {
+				gameLogic.changeTurnCount(0);
+				gameLogic.changeMineCount(0);
+				setHighscoreDisplay(gameLogic.levelInfo.bestScore);
+			}
+		};
+		// tileView.addUserInput(userInput);
 	}
 
 	@Override
@@ -101,7 +121,7 @@ public class LevelActivity extends FragmentActivity implements
 	public void onResume() {
 		super.onResume();
 		if (!restartFlag) {
-			showTutorial((int) mapNum);
+			// showTutorial((int) mapNum);
 			restartFlag = true;
 		}
 	}
@@ -123,7 +143,7 @@ public class LevelActivity extends FragmentActivity implements
 		savedInstanceState.putBundle("GAME_LOGIC", gameLogic.saveState());
 		Log.i("LevelActivity", "GameLogic saved");
 		savedInstanceState.putBoolean("restartFlag", restartFlag);
-		//super.onSaveInstanceState(savedInstanceState);
+		// super.onSaveInstanceState(savedInstanceState);
 	}
 
 	@Override
@@ -165,10 +185,16 @@ public class LevelActivity extends FragmentActivity implements
 	 * (TileView)findViewById(R.id.map); map.invalidate(); }
 	 */
 
-	public void setHighscoreDisplay() {
-		MapLeftOptions leftOpFrag = (MapLeftOptions) getSupportFragmentManager()
-				.findFragmentById(R.id.mapLeftOptions);
-		leftOpFrag.setHighscoreDisplay(gameLogic.levelInfo.bestScore);
+	public void setHighscoreDisplay(final int highScore) {
+		Runnable uiRunnable = new Runnable() {
+			@Override
+			public void run() {
+				MapLeftOptions leftOpFrag = (MapLeftOptions) getSupportFragmentManager()
+						.findFragmentById(R.id.mapLeftOptions);
+				leftOpFrag.setHighscoreDisplay(highScore);
+			}
+		};
+		this.runOnUiThread(uiRunnable);
 	}
 
 	@Override
@@ -178,59 +204,100 @@ public class LevelActivity extends FragmentActivity implements
 	}
 
 	@Override
-	public void updateCounts(int mineChange, int turnChange, int scoreChange) {
-		MapLeftOptions leftOpFrag = (MapLeftOptions) getSupportFragmentManager()
-				.findFragmentById(R.id.mapLeftOptions);
-		leftOpFrag.updateMines(mineChange);
-		leftOpFrag.updateTurns(turnChange);
-		leftOpFrag.updateScore(scoreChange);
+	public void updateCounts(final int mineChange, final int turnChange,
+			final int scoreChange) {
+		Runnable uiRunnable = new Runnable() {
+			@Override
+			public void run() {
+				MapLeftOptions leftOpFrag = (MapLeftOptions) getSupportFragmentManager()
+						.findFragmentById(R.id.mapLeftOptions);
+				leftOpFrag.updateMines(mineChange);
+				leftOpFrag.updateTurns(turnChange);
+				leftOpFrag.updateScore(scoreChange);
+			}
+		};
+		this.runOnUiThread(uiRunnable);
 	}
 
 	@Override
 	public void showGameOverDialog() {
-		System.out.println("gameoverdialog called");
-		DialogFragment gameOverFrag = new GameOverFragment();
-		gameOverFrag.show(getSupportFragmentManager(), "gameOverFrag");
+		Runnable uiRunnable = new Runnable() {
+			@Override
+			public void run() {
+				System.out.println("gameoverdialog called");
+				DialogFragment gameOverFrag = new GameOverFragment();
+				gameOverFrag.show(getSupportFragmentManager(), "gameOverFrag");
+			}
+		};
+		this.runOnUiThread(uiRunnable);
 	}
 
 	@Override
-	public void showLevelCompleteDialog(boolean setNewScore, int score) {
+	public void showLevelCompleteDialog(final boolean setNewScore,
+			final int score) {
 		System.out.println("levelCompleteDialog called");
-		if (setNewScore == false) {
-			DialogFragment levelCompleteDialog = LevelCompleteDialog
-					.newInstance(score);
-			levelCompleteDialog.show(getSupportFragmentManager(),
-					"levelCompleteDialog");
-		} else {
-			DialogFragment newBestScoreDialog = NewBestScoreDialog
-					.newInstance(score);
-			newBestScoreDialog.show(getSupportFragmentManager(),
-					"newBestScoreDialog");
-		}
+		Runnable uiRunnable = new Runnable() {
+			@Override
+			public void run() {
+				if (setNewScore == false) {
+					DialogFragment levelCompleteDialog = LevelCompleteDialog
+							.newInstance(score);
+					levelCompleteDialog.show(getSupportFragmentManager(),
+							"levelCompleteDialog");
+				} else {
+					DialogFragment newBestScoreDialog = NewBestScoreDialog
+							.newInstance(score);
+					newBestScoreDialog.show(getSupportFragmentManager(),
+							"newBestScoreDialog");
+				}
+			}
+		};
+		this.runOnUiThread(uiRunnable);
 	}
 
 	// mapRightOptions interface
 	@Override
-	public void changeMineBtnState(boolean state) {
-		((MapRightOptions) this.getSupportFragmentManager().findFragmentById(
-				R.id.mapRightOptions)).changeMineBtnState(state);
+	public void changeMineBtnState(final boolean state) {
+		Runnable uiRunnable = new Runnable() {
+			@Override
+			public void run() {
+				((MapRightOptions) getSupportFragmentManager()
+						.findFragmentById(R.id.mapRightOptions))
+						.changeMineBtnState(state);
+			}
+		};
+		this.runOnUiThread(uiRunnable);
 	}
 
 	@Override
 	public void mineBtn(View mineBtnView) {
-		gameLogic.mineButtonPressed();
+		TileView tileView = (TileView) findViewById(R.id.map);
+		Runnable userInput = new Runnable() {
+			@Override
+			public void run() {
+				gameLogic.mineButtonPressed();
+			}
+		};
+		tileView.addUserInput(userInput);
 	}
-	
-	public void changeMineButtonImage(GameLogic.GameStates gameState){
-		int buttonImage;
-		ImageButton mineButton = ((ImageButton) this.findViewById(R.id.mineBtn));
-		if(gameState.equals(GameLogic.GameStates.MINE_MODE)){
-			buttonImage = R.drawable.mine_btn;
-			mineButton.setImageResource(buttonImage);
-		}else if(gameState.equals(GameLogic.GameStates.MOVE_MODE)){
-			buttonImage = R.drawable.ship_btn;			
-			mineButton.setImageResource(buttonImage);
-		}
+
+	public void changeMineButtonImage(final GameLogic.GameStates gameState) {
+		Runnable uiRunnable = new Runnable() {
+			@Override
+			public void run() {
+				int buttonImage;
+				ImageButton mineButton = ((ImageButton) LevelActivity.this
+						.findViewById(R.id.mineBtn));
+				if (gameState.equals(GameLogic.GameStates.MINE_MODE)) {
+					buttonImage = R.drawable.mine_btn;
+					mineButton.setImageResource(buttonImage);
+				} else if (gameState.equals(GameLogic.GameStates.MOVE_MODE)) {
+					buttonImage = R.drawable.ship_btn;
+					mineButton.setImageResource(buttonImage);
+				}
+			}
+		};
+		this.runOnUiThread(uiRunnable);
 	}
 
 	@Override
@@ -242,12 +309,26 @@ public class LevelActivity extends FragmentActivity implements
 
 	@Override
 	public void undoBtn(View undoBtn) {
-		gameLogic.undo();
+		TileView tileView = (TileView) findViewById(R.id.map);
+		Runnable userInput = new Runnable() {
+			@Override
+			public void run() {
+				gameLogic.undo();
+			}
+		};
+		tileView.addUserInput(userInput);
 	}
 
 	@Override
 	public void endBtn(View endBtnView) {
-		gameLogic.endTurn();
+		TileView tileView = (TileView) findViewById(R.id.map);
+		Runnable userInput = new Runnable() {
+			@Override
+			public void run() {
+				gameLogic.endTurn();
+			}
+		};
+		tileView.addUserInput(userInput);
 	}
 
 	// various ingame dialoge fragment Callbacks
@@ -279,12 +360,6 @@ public class LevelActivity extends FragmentActivity implements
 		userChoice.putExtra(MenuActivity.LEVEL_ID_EXTRA, mapNum + 1);
 		startActivity(userChoice);
 		this.finish();
-	}
-
-	@Override
-	public void updateScreen(boolean animate) {
-		TileView tileView = (TileView) findViewById(R.id.map);
-		tileView.animationLogic.updateScreen(animate);
 	}
 
 	@Override

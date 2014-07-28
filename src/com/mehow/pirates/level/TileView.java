@@ -8,9 +8,9 @@ import android.graphics.RectF;
 import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
-import android.view.View;
+import android.view.SurfaceHolder;
+import android.view.SurfaceView;
 
-import com.mehow.pirates.AnimationLogic;
 import com.mehow.pirates.Consts;
 import com.mehow.pirates.Cords;
 import com.mehow.pirates.gameObjects.Goal;
@@ -27,16 +27,23 @@ import com.mehow.pirates.gameObjects.enemys.Venemy;
 
 //this call should be changed to deal with only the interaction with view objects (ie not game logic)
 
-public class TileView extends View implements
-		AnimationLogic.AnimationViewCallbacks {
+public class TileView extends SurfaceView implements SurfaceHolder.Callback{
+	//implements AnimationLogic.AnimationViewCallbacks {
 
+	//surfaceview shiz
+	SurfaceHolder holder;
+	Context context;
+	boolean hasSurface;
+	
 	private static int tileWidth;
 	private static int tileHeight;
 	private static RectF tileDrawArea;
 
 	private LogicCallbacks logicCallbacks;
 
-	public AnimationLogic animationLogic;
+	//public AnimationLogic animationLogic;
+
+	public TileViewThread viewThread;
 	
 	public interface ActivityCallbacks{
 		public LogicCallbacks getLogicInstance();
@@ -49,7 +56,9 @@ public class TileView extends View implements
 
 		public void onActionUp(Cords cord);
 
-		public void draw(Canvas canvas, int interStepNo, float offsetAmount, RectF drawArea);
+		public void draw(Canvas canvas, RectF drawArea);
+		
+		public void update(long timeChange);
 	};
 
 	public TileView(Context context, AttributeSet attrs) {
@@ -60,29 +69,28 @@ public class TileView extends View implements
 					"Activity must return a logic.");
 		}
 		logicCallbacks = ((ActivityCallbacks)activity).getLogicInstance();
-		animationLogic = new AnimationLogic(this, logicCallbacks);
+		//animationLogic = new AnimationLogic(this, logicCallbacks);
+		initialise(context);
 	}
 
+	private void initialise(Context tContext){
+		//create surfaceviewholder and assign this class as the callback
+		holder = getHolder();
+		holder.addCallback(this);
+		hasSurface = true;
+	//	System.out.println("initialised");
+		context = tContext;
+	}
+	
+	public RectF getTileDrawArea(){
+		return tileDrawArea;
+	}
+	
 	// this is called as soon as size is set, oldw and old h will be 0 is size
 	// set for first time
 	@Override
 	protected void onSizeChanged(int w, int h, int oldw, int oldh) {
 		defineMapProperties(w, h);
-		// load for each game object class
-		Resources r = this.getResources();
-		Consts.loadPaints();
-		Ship.loadPaints();
-		Ship.loadSpecialBitmaps(r);
-		Mine.loadSpecialBitmaps(r);
-		Tile.loadPaints(r);
-		Goal.loadSpecialBitmaps(r);
-		Rock.loadSpecialBitmaps(r);
-		Sea.loadSpecialBitmaps(r);
-		Enemy.loadPaints(r);
-		Aenemy.loadSpecialBitmaps(r);
-		Venemy.loadSpecialBitmaps(r);
-		Henemy.loadSpecialBitmaps(r);
-		PathEnemy.loadSpecialBitmaps(r);
 	}
 
 	// get drawable objects of image in res
@@ -105,17 +113,7 @@ public class TileView extends View implements
 		tileDrawArea = new RectF(0,0, tileWidth, tileHeight);
 		System.out.println("tileh: " + tileHeight + " tilew: " + tileWidth);
 	}
-
-	// --------------------------------
-	@Override
-	public void onDraw(Canvas canvas) {
-		super.onDraw(canvas);
-		//assumes square tiles
-		double animationFrameDistance = (double) tileWidth / (double) animationLogic.getNumberOfStages();
-		int offsetAmount = (int) Math.round((animationLogic.getCurrentAnimationOffsetNo())*animationFrameDistance);
-		logicCallbacks.draw(canvas, animationLogic.getCurrentAnimationInterStepNo(), offsetAmount, tileDrawArea);
-	}
-
+	
 	@Override
 	public boolean onTouchEvent(MotionEvent event) {
 		int action = event.getAction();
@@ -129,9 +127,67 @@ public class TileView extends View implements
 			// System.out.println("tileWidth: "+tileWidth+" tileHeight: "+tileHeight);
 			xCord = (int) Math.floor(x / tileWidth);
 			yCord = (int) Math.floor(y / tileHeight);
-			Cords touchedCord = new Cords(xCord, yCord);
-			logicCallbacks.onActionUp(touchedCord);
+			final Cords touchedCord = new Cords(xCord, yCord);
+			this.viewThread.addUserInput(new Runnable(){
+				@Override
+				public void run(){
+					logicCallbacks.onActionUp(touchedCord);					
+				}
+			});
 		}
 		return true;
+	}
+	
+	//surfaceview shiz
+	
+	//may have to check holder not null
+	public void surfaceCreated(SurfaceHolder holder){
+		//create and start the graphics update thread
+		if(viewThread == null){
+			//System.out.println("viewthread was null, re-constructing");
+			viewThread = new TileViewThread(holder, context, logicCallbacks, this);
+			viewThread.start();
+		}
+	}
+	public void pause(){
+		//kill graphics update thread
+		//System.out.println("paused");
+		if(viewThread != null){
+	//		System.out.println("viewhread set to null");
+			viewThread.requestExitAndWait();
+			try {
+				viewThread.join();
+			} catch (InterruptedException e) {
+
+			}
+			viewThread = null;
+		}
+	}
+	//not actuly used, is not a required function, but recommended by book
+	/*public void resume(){
+	//	System.out.println("resumed");
+		//create and start the graphics update thread
+		width = this.getWidth();
+		height = this.getHeight();
+		if(viewThread == null){
+			viewThread = new MenuBkSurfaceViewThread(holder, context, width, height);
+			if(hasSurface == true){
+				viewThread.start();
+			}
+		}
+	}*/
+	public void surfaceDestroyed(SurfaceHolder holder){
+	//	System.out.println("surface destroyed");
+		hasSurface = false;
+		pause();
+	}
+	public void surfaceChanged(SurfaceHolder holder, int format, int w, int h){
+		if(viewThread != null){
+			viewThread.onWindowResize(w, h);
+		}
+	}
+	
+	public void addUserInput(Runnable newUserInput){
+		viewThread.addUserInput(newUserInput);
 	}
 }

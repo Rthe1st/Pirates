@@ -1,18 +1,21 @@
 package com.mehow.pirates.gameObjects.enemys;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Stack;
 
-import android.content.res.Resources;
-import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.graphics.Rect;
 import android.graphics.RectF;
+import android.graphics.drawable.Drawable;
 
 import com.mehow.pirates.AnimationLogic;
 import com.mehow.pirates.AnimationSteps;
 import com.mehow.pirates.Consts;
 import com.mehow.pirates.Cords;
 import com.mehow.pirates.Moves;
+import com.mehow.pirates.animation.AnimationSequence;
 import com.mehow.pirates.gameObjects.CordData;
 import com.mehow.pirates.gameObjects.GameObject;
 import com.mehow.pirates.gameObjects.Goal;
@@ -27,13 +30,9 @@ abstract public class Enemy implements GameObject, Moves {
 	protected int numOfMovesAllowed;
 	protected int numOfMovesLeft;
 	protected ArrayList<Cords> previousCords = new ArrayList<Cords>();
-	
-	private Paint selfPaint;
-	
-	Cords currentCords;
 
-	AnimationSteps animationSteps;
-
+	private Stack<Boolean> frozenRecord;
+	
 	//0 when not frozen
 	protected int frozenTurnCount;
 	
@@ -43,7 +42,22 @@ abstract public class Enemy implements GameObject, Moves {
 	public interface Callbacks {
 		public CordData getInfoOnCords(Cords cord);
 	}
+	
+	private Paint selfPaint;
+	
+	Cords currentCords;
 
+	AnimationSteps animationSteps;
+
+    //animation&display
+
+    public static enum AnimationType{
+    	STATIONARY, FROZEN
+    };
+
+    protected HashMap<AnimationType, AnimationSequence> animations;    
+	protected AnimationSequence currentAnimation;
+    
 	public Enemy(Cords cords, int tempNumOfMovesAllowed, Callbacks tCallbacks) {
 		currentCords = cords;
 		animationSteps = new AnimationSteps(cords);
@@ -53,22 +67,12 @@ abstract public class Enemy implements GameObject, Moves {
 		callbacks = tCallbacks;
 		selfPaint = Consts.stdPaint;
 		frozenTurnCount = 0;
+		frozenRecord = new Stack<Boolean>();
 	}
 
 	public Enemy(Cords cords, Callbacks tCallbacks) {
-		currentCords = cords;
-		animationSteps = new AnimationSteps(cords);
-		previousCords = new ArrayList<Cords>(0);
-		numOfMovesAllowed = defNumOfMovesAllowed;
-		numOfMovesLeft = numOfMovesAllowed;
-		callbacks = tCallbacks;
-		selfPaint = Consts.stdPaint;
-		frozenTurnCount = 0;
+		this(cords, defNumOfMovesAllowed, tCallbacks);
 	}
-	
-	public static void loadPaints(Resources r){
-
-    }
 
 	abstract public Cords computeMoveStep(Cords shipCords);
 
@@ -102,8 +106,6 @@ abstract public class Enemy implements GameObject, Moves {
 		}
 	}
 
-	// ------------------------------------
-
 	public static boolean isValidMove(CordData cordData) {
 		boolean validTile = cordData.tile instanceof Sea
 				|| cordData.tile instanceof Goal;
@@ -128,6 +130,7 @@ abstract public class Enemy implements GameObject, Moves {
 	public void newTurn() {
 		animationSteps.clearSteps(currentCords);
 		resetMovesLeft();
+		frozenRecord.push(frozenTurnCount == 0);
 		if(frozenTurnCount > 0){
 			frozenTurnCount -= 1;
 		}
@@ -151,6 +154,16 @@ abstract public class Enemy implements GameObject, Moves {
 		currentCords = newCords;
 		animationSteps.clearSteps(currentCords);
 		numOfMovesLeft = this.numOfMovesAllowed;
+		//note there weridness around freezing because
+		//on the turn when an enemy freezes its not frozen at the start
+		//but is frozen at the end of the turn
+		boolean previousFrozenState = frozenRecord.pop();
+		if(previousFrozenState == true){
+			frozenTurnCount += 1;
+		}
+		if(frozenTurnCount == Consts.MINE_FREEZE_TIME){
+			frozenTurnCount = 0;
+		}
 	}
 
 	@Override
@@ -211,8 +224,6 @@ abstract public class Enemy implements GameObject, Moves {
 		return currentCords;
 	}
 
-	public abstract Bitmap getSelf();
-
 	public Paint getSelfPaint() {
 		return selfPaint;
 	}
@@ -237,8 +248,11 @@ abstract public class Enemy implements GameObject, Moves {
     	float xOffset = AnimationLogic.calculateCanvasOffset(currentStep.startCords.x, currentStep.endCords.x, 0, drawArea.width());
     	float yOffset = AnimationLogic.calculateCanvasOffset(currentStep.startCords.y, currentStep.endCords.y, 0, drawArea.height());
     	drawArea.offsetTo(xOffset, yOffset);
-        canvas.drawBitmap(getSelf(), null, drawArea, getSelfPaint());
-        drawFrozen(canvas, drawArea);
+    	Drawable drawable = currentAnimation.getCurrentFrame();
+    	drawable.setBounds(new Rect((int)drawArea.left, (int)drawArea.top, (int)drawArea.right, (int)drawArea.bottom));
+    	drawable.draw(canvas);
+    	//canvas.drawRect(drawArea, getSelfPaint());
+    	drawFrozen(canvas, drawArea);
     }
     
     public void drawSelf(Canvas canvas, int interStepNo, float animationOffset, RectF drawArea) {
@@ -252,9 +266,11 @@ abstract public class Enemy implements GameObject, Moves {
     	}
     	float xOffset = AnimationLogic.calculateCanvasOffset(currentStep.startCords.x, currentStep.endCords.x, animationOffset, drawArea.width());
     	float yOffset = AnimationLogic.calculateCanvasOffset(currentStep.startCords.y, currentStep.endCords.y, animationOffset, drawArea.height());
-    	//check this offsets in the right direction
     	drawArea.offsetTo(xOffset, yOffset);
-        canvas.drawBitmap(getSelf(), null, drawArea, getSelfPaint());
+    	Drawable drawable = currentAnimation.getCurrentFrame();
+    	drawable.setBounds(new Rect((int)drawArea.left, (int)drawArea.top, (int)drawArea.right, (int)drawArea.bottom));
+    	drawable.draw(canvas);
+    	//canvas.drawRect(drawArea, getSelfPaint());
         drawFrozen(canvas, drawArea);
     }
     
@@ -264,6 +280,15 @@ abstract public class Enemy implements GameObject, Moves {
         	frozenPaint.setARGB(100, 0, 0, 255);
         	canvas.drawArc(drawArea, 0, 90*frozenTurnCount, true, frozenPaint);
         }
+    }
+    
+    public void update(long timeChange){
+		currentAnimation.update(timeChange);
+    }
+    
+    public void setAnimationType(AnimationType newType){
+    	currentAnimation.reset();
+    	currentAnimation = animations.get(newType);
     }
     
     public void setSelfPaint(Paint newPaint){

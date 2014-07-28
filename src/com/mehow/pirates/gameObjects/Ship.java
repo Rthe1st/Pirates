@@ -2,13 +2,16 @@ package com.mehow.pirates.gameObjects;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import android.content.res.Resources;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.graphics.Rect;
 import android.graphics.RectF;
+import android.graphics.drawable.AnimationDrawable;
+import android.graphics.drawable.Drawable;
 import android.util.Log;
 
 import com.mehow.pirates.AnimationLogic;
@@ -17,6 +20,7 @@ import com.mehow.pirates.Consts;
 import com.mehow.pirates.Cords;
 import com.mehow.pirates.Moves;
 import com.mehow.pirates.R;
+import com.mehow.pirates.animation.AnimationSequence;
 import com.mehow.pirates.level.GameLogic;
 
 //work out how to have cord copy hash map better
@@ -44,9 +48,32 @@ public class Ship implements GameObject, Serializable, Moves{
     private boolean hasMoved;
     
     private boolean hasMined;
-    
+
     //animation&display
-    private static Bitmap self;
+    
+    private static HashMap<AnimationType, AnimationDrawable> animationDrawables;
+
+    private HashMap<AnimationType, AnimationSequence> animations;
+    private AnimationSequence currentAnimation;
+       
+    public static enum AnimationType{
+    	STATIONARY
+    };
+    
+    public static void loadAnimationDrawables(Resources resources){
+    	animationDrawables = new HashMap<AnimationType, AnimationDrawable>();
+    	animationDrawables.put(AnimationType.STATIONARY, (AnimationDrawable)resources.getDrawable(R.drawable.ship_stationary));
+    }
+    
+    private void loadAnimations(){
+    	animations = new HashMap<AnimationType, AnimationSequence>();
+    	animations.put(AnimationType.STATIONARY, new AnimationSequence(animationDrawables.get(AnimationType.STATIONARY)));
+    }
+    
+    public void setAnimationType(AnimationType newType){
+    	currentAnimation.reset();
+    	currentAnimation = animations.get(newType);
+    }
     
     public Ship(Cords cords, PathAlgorithms.Callbacks pathCallbacks){
         currentCords = cords;
@@ -56,7 +83,9 @@ public class Ship implements GameObject, Serializable, Moves{
         hasMoved = false;
         hasMined = false;
         selfPaint = Consts.stdPaint;
-	}
+    	loadAnimations();
+        currentAnimation = animations.get(AnimationType.STATIONARY);
+    }
     
     public static void loadPaints(){
     	disabledPaint = new Paint();
@@ -169,7 +198,7 @@ public class Ship implements GameObject, Serializable, Moves{
         return moveRange;
     }
     public ArrayList<Cords> getPossibleShipMoves(){
-        System.out.println("possiblemoves: "+shipPathAlgs.getAllCords());
+       // System.out.println("possiblemoves: "+shipPathAlgs.getAllCords());
         return shipPathAlgs.getAllCords();
     }
     public void findPossibleMoves(){
@@ -210,11 +239,6 @@ public class Ship implements GameObject, Serializable, Moves{
     public ArrayList<Cords> getAllMineCords(){
         return minePathAlgs.getAllCords();
     }
-    
-    @Override
-    public Bitmap getSelf() {
- 	   return self;
-    }
 
     public void setSelfPaint(Paint newPaint){
     	selfPaint = newPaint;
@@ -222,11 +246,6 @@ public class Ship implements GameObject, Serializable, Moves{
     
     public Paint getSelfPaint(){
         return selfPaint;
-    }
-    
-    //load image to bitmap from drawable objects
-   public static void loadSpecialBitmaps(Resources r){
-	   	self = BitmapFactory.decodeResource(r, R.drawable.ship);
     }
    
    @Override
@@ -284,14 +303,18 @@ public class Ship implements GameObject, Serializable, Moves{
     	float yOffset = AnimationLogic.calculateCanvasOffset(currentStep.startCords.y, currentStep.endCords.y, animationOffset, drawArea.height());
     	//check this offsets in the right direction
     	drawArea.offsetTo(xOffset, yOffset);
-        canvas.drawBitmap(getSelf(), null, drawArea, getSelfPaint());
+    	Drawable drawable = currentAnimation.getCurrentFrame();
+    	drawable.setBounds(new Rect((int)drawArea.left, (int)drawArea.top, (int)drawArea.right, (int)drawArea.bottom));
+    	drawable.draw(canvas);
     }
     public void drawSelfNoAnimate(Canvas canvas, RectF drawArea) {
     	InterStep currentStep = new InterStep(currentCords,currentCords);
     	float xOffset = AnimationLogic.calculateCanvasOffset(currentStep.startCords.x, currentStep.endCords.x, 0, drawArea.width());
     	float yOffset = AnimationLogic.calculateCanvasOffset(currentStep.startCords.y, currentStep.endCords.y, 0, drawArea.height());
     	drawArea.offsetTo(xOffset, yOffset);
-        canvas.drawBitmap(getSelf(), null, drawArea, getSelfPaint());
+    	Drawable drawable = currentAnimation.getCurrentFrame();
+    	drawable.setBounds(new Rect((int)drawArea.left, (int)drawArea.top, (int)drawArea.right, (int)drawArea.bottom));
+    	drawable.draw(canvas);
     }
 
 	@Override
@@ -302,5 +325,9 @@ public class Ship implements GameObject, Serializable, Moves{
 	@Override
 	public String getEncodedParameters(){
 		return "";
+	}
+	
+	public void update(long timeChange){
+		currentAnimation.update(timeChange);
 	}
 }

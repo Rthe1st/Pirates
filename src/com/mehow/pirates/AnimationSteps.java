@@ -57,7 +57,7 @@ public class AnimationSteps implements Serializable{
     public boolean hasMoreSteps(int interStepNumber){
     	//-1 for 0 based step array
     	//-1 because number of inter-steps is 1 less then number of steps
-    	Log.i("GameObject", "Step count-2: "+(getStepCount()-2)+" inter step no: "+interStepNumber);
+    	//Log.i("GameObject", "Step count-2: "+(getStepCount()-2)+" inter step no: "+interStepNumber);
     	return getStepCount()-2 >= interStepNumber;
     }
 }

@@ -39,8 +39,6 @@ public class DesignLogic implements TileView.LogicCallbacks {
 	public Callbacks mCallbacks;
 
 	public interface Callbacks {
-		public void updateScreen(boolean animate);
-
 		public void showToast(String text);
 	}
 
@@ -141,7 +139,6 @@ public class DesignLogic implements TileView.LogicCallbacks {
 		} else {
 			tryAddGameObject(touchedCords);
 		}
-		mCallbacks.updateScreen(false);
 	}
 
 	private void deleteGameObject(Cords cords) {
@@ -153,7 +150,6 @@ public class DesignLogic implements TileView.LogicCallbacks {
 		for (GameObjectMap<?> goMap : goMaps) {
 			if (goMap.get(cords) != null) {
 				mapData.killStep(goMap, cords);
-				mCallbacks.updateScreen(false);
 				// break so only top object is deleted
 				break;
 			}
@@ -216,9 +212,7 @@ public class DesignLogic implements TileView.LogicCallbacks {
 		default:
 			throw new RuntimeException("Super type not found");
 		}
-		if (legalPlacement) {
-			mCallbacks.updateScreen(false);
-		} else {
+		if (!legalPlacement) {
 			mCallbacks.showToast("placement illegal");
 		}
 	}
@@ -308,7 +302,6 @@ public class DesignLogic implements TileView.LogicCallbacks {
 
 	public void undo() {
 		mapData.undo();
-		mCallbacks.updateScreen(false);
 	}
 
 	@Override
@@ -327,7 +320,6 @@ public class DesignLogic implements TileView.LogicCallbacks {
 		designModeSubType = null;
 		if(designModeSuperType != Consts.DesignModeSuperTypes.SELECT && selectedGameObject != null){
 			deselectGameObject();
-			this.mCallbacks.updateScreen(false);
 		}
 		/*
 		 * switch (superType) { case ENEMY: selectedMap = mapData.enemyMap;
@@ -343,7 +335,7 @@ public class DesignLogic implements TileView.LogicCallbacks {
 	}
 
 	@Override
-	public void draw(Canvas canvas, int interStepNo, float offsetAmount,
+	public void draw(Canvas canvas,
 			RectF drawArea) {
 		mapData.tileMap.drawSelvesNoAnimate(canvas, drawArea);
 		mapData.shipMap.drawSelvesNoAnimate(canvas, drawArea);
@@ -368,5 +360,19 @@ public class DesignLogic implements TileView.LogicCallbacks {
 		// so just updates the actual map string
 		levelInfo.mapData = mapData.encodeMapData();
 		return levelInfo;
+	}
+
+	@Override
+	public void update(long time) {
+		updateGos(mapData.enemyMap, time);
+		updateGos(mapData.shipMap, time);
+		updateGos(mapData.mineMap, time);
+		updateGos(mapData.tileMap, time);
+	}
+	
+	private <T extends GameObject> void  updateGos(GameObjectMap<T> goMap, long time){
+		for(T go : goMap.getAll()){
+			go.update(time);
+		}
 	}
 }

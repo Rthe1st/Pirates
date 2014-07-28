@@ -1,16 +1,24 @@
 package com.mehow.pirates.level;
 
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.Vector;
 
 import android.app.Activity;
 import android.graphics.Canvas;
+import android.graphics.Rect;
 import android.graphics.RectF;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.util.Log;
 
+import com.mehow.pirates.AnimationLogic;
 import com.mehow.pirates.Cords;
 import com.mehow.pirates.LevelInfo;
+import com.mehow.pirates.animation.Effect;
+import com.mehow.pirates.animation.ExplosionSequence;
 import com.mehow.pirates.gameObjects.GameObject;
+import com.mehow.pirates.gameObjects.GameObjectMap;
 import com.mehow.pirates.gameObjects.Goal;
 import com.mehow.pirates.gameObjects.MapData;
 import com.mehow.pirates.gameObjects.Mine;
@@ -36,8 +44,6 @@ public class GameLogic implements TileView.LogicCallbacks {
 		public void changeMineButtonImage(GameStates state);
 
 		public void showGameOverDialog();
-
-		public void updateScreen(boolean animate);
 	}
 
 	public LevelInfo levelInfo;
@@ -68,29 +74,43 @@ public class GameLogic implements TileView.LogicCallbacks {
 	// private Cords selectedCords;
 	private GameObject selectedGameObject;
 
+	// enemy movement
+	private final int numberOfStages = 5;
+	private int offsetNo = 0;
+	private int interStepNo = 0;
+	private static int animationSpeed = 100;
+	private int lastMoveAnimationTime = 0;
+
+	//graphic effects
+	//serilize mutha fukcer
+	private Vector<Effect> effectSequences;
+	
+	private GameLogic(Activity callBackActivity){
+		if (!(callBackActivity instanceof Callbacks)) {
+			throw new IllegalStateException(
+					"Activity must implement GameLogic.Callbacks.");
+		}
+		mCallbacks = (Callbacks) callBackActivity;		
+	}
+
 	// constructor when creating level for first time (ie no android lifecycle
 	// funnyness)
 	public GameLogic(Activity callBackActivity, LevelInfo tLevelInfo) {
-		if (!(callBackActivity instanceof Callbacks)) {
-			throw new IllegalStateException(
-					"Activity must implement GameLogic.Callbacks.");
-		}
+		this(callBackActivity);
 		levelInfo = tLevelInfo;
-		mCallbacks = (Callbacks) callBackActivity;
 		mineCount = levelInfo.mineLimit;
 		mapData = new MapData(levelInfo.mapData);
 		gameState = GameStates.MOVE_MODE;
+		effectSequences = new Vector<Effect>();
 	}
 
 	public GameLogic(Activity callBackActivity, Bundle bundle) {
-		if (!(callBackActivity instanceof Callbacks)) {
-			throw new IllegalStateException(
-					"Activity must implement GameLogic.Callbacks.");
-		}
-		mCallbacks = (Callbacks) callBackActivity;
+		this(callBackActivity);
 		// bundebundeldundle
 		mapData = new MapData(bundle.getBundle("MAP_DATA"));
 		loadSelf(bundle);
+		effectSequences = new Vector<Effect>();
+
 	}
 
 	// store gamestates as strings to save shit yo
@@ -145,7 +165,6 @@ public class GameLogic implements TileView.LogicCallbacks {
 			}
 			setSelectedGameObject(null);
 		}
-		mCallbacks.updateScreen(false);
 	}
 
 	public boolean trySetSelected(GameObject gameObject) {
@@ -173,10 +192,6 @@ public class GameLogic implements TileView.LogicCallbacks {
 				selectedAction(touchedCords);
 				updateRequired = true;
 			}
-		}
-		if (updateRequired) {
-			Log.i("GameLogic", "updaterequired, screen updating");
-			mCallbacks.updateScreen(false);
 		}
 		Log.i("GameLogic", "end gamestate: " + getGameState());
 	}
@@ -277,7 +292,6 @@ public class GameLogic implements TileView.LogicCallbacks {
 							// ship
 				}
 			}
-			mCallbacks.updateScreen(false);
 		} else {
 			setGameState(GameStates.GAME_OVER);
 			mCallbacks.showGameOverDialog();
@@ -340,7 +354,6 @@ public class GameLogic implements TileView.LogicCallbacks {
 				}
 			}
 		}
-		mCallbacks.updateScreen(false);
 	}
 
 	public int getMapHeight() {
@@ -367,7 +380,6 @@ public class GameLogic implements TileView.LogicCallbacks {
 			// animating)
 			enemyMoveAlgorithm();
 			mCallbacks.changeMineBtnState(true);
-			mCallbacks.updateScreen(true);
 		} else {
 			System.out.println("not ending turn");
 		}
@@ -405,6 +417,7 @@ public class GameLogic implements TileView.LogicCallbacks {
 					if (mapData.mineMap.containsAt(newCords)) {
 						mapData.mineMap.kill(newCords);
 						enemy.hitMine();
+						this.effectSequences.add(new ExplosionSequence(enemy.getCurrentCords()));
 					}
 					if (mapData.shipMap.containsAt(newCords)) {
 						mapData.shipMap.kill(newCords);
@@ -440,6 +453,51 @@ public class GameLogic implements TileView.LogicCallbacks {
 		}
 	}
 
+	long timeSinceEnemyAnimation = 0;
+
+	public void update(long time) {
+		//Log.i("GameLogic", "update called");
+		//Log.i("GameLogic", "time since last update:"+time);
+		if (getGameState() == GameStates.MOVE_COMPLETE) {
+			//Log.i("GameLogic", "animation enemy movement");
+			timeSinceEnemyAnimation += time;
+			Log.i("GameLogic", "timeSinceEnemyAnimation:"+timeSinceEnemyAnimation+" looping "+Math.floor(timeSinceEnemyAnimation/animationSpeed)+" times to keep up");
+			while(timeSinceEnemyAnimation > this.animationSpeed){
+				timeSinceEnemyAnimation -= animationSpeed;
+				Log.i("GameLogic", "enemyanimation loop, offsetno:"+offsetNo+" interstepno:"+interStepNo);
+				if (this.offsetNo == this.numberOfStages) {
+					lastMoveAnimationTime = 0;
+					this.offsetNo = 0;
+					this.interStepNo += 1;
+					if (!checkMoreMoves(interStepNo)) {
+						interStepNo = 0;
+						this.animationFinished();
+					}
+				}else{
+					offsetNo += 1;
+				}
+			}
+		}
+		updateGos(mapData.enemyMap, time);
+		updateGos(mapData.shipMap, time);
+		updateGos(mapData.mineMap, time);
+		updateGos(mapData.tileMap, time);
+		Iterator<Effect> effectItorator = effectSequences.iterator();
+		while(effectItorator.hasNext()){
+			Effect effect = effectItorator.next();
+			effect.update(time);
+			if(effect.isFinished()==true){
+				effectItorator.remove();
+			}
+		}
+	}
+
+	private <T extends GameObject> void  updateGos(GameObjectMap<T> goMap, long time){
+		for(T go : goMap.getAll()){
+			go.update(time);
+		}
+	}
+	
 	// The order of drawing matters!
 	// first drawn will be covered up by later drawn
 
@@ -448,12 +506,15 @@ public class GameLogic implements TileView.LogicCallbacks {
 	// so when moving enemies, only enemies make use of interStepNo, everything
 	// else uses drawSelvesNoAnimate
 	// be careful when trying to animate 2 different go's simulatiouly
-	public void draw(Canvas canvas, int interStepNo, float offsetAmount,
-			RectF drawArea) {
+	@Override
+	public void draw(Canvas canvas, RectF drawArea) {
 		mapData.tileMap.drawSelvesNoAnimate(canvas, drawArea);
 		mapData.shipMap.drawSelvesNoAnimate(canvas, drawArea);
 		mapData.mineMap.drawSelvesNoAnimate(canvas, drawArea);
 		if (getGameState() == GameStates.MOVE_COMPLETE) {
+			//assumes square tiles
+			double animationFrameDistance = (double) drawArea.width() / (double) this.numberOfStages;
+			int offsetAmount = (int) Math.round((offsetNo)*animationFrameDistance);
 			mapData.enemyMap.drawSelves(canvas, interStepNo, offsetAmount,
 					drawArea);
 		} else {
@@ -461,6 +522,17 @@ public class GameLogic implements TileView.LogicCallbacks {
 		}
 		if (getSelectedGameObject() != null) {
 			getSelectedGameObject().selectedDraw(canvas, drawArea);
+		}
+		Iterator<Effect> effectItorator = effectSequences.iterator();
+		while(effectItorator.hasNext()){
+			Effect effect = effectItorator.next();
+	    	float xOffset = AnimationLogic.calculateCanvasOffset(effect.getX(), effect.getX(), 0, drawArea.width());
+	    	float yOffset = AnimationLogic.calculateCanvasOffset(effect.getY(), effect.getY(), 0, drawArea.height());
+	    	drawArea.offsetTo(xOffset, yOffset);
+	    	Drawable drawable = effect.getCurrentFrame();
+	    	drawable.setBounds(new Rect((int)drawArea.left, (int)drawArea.top, (int)drawArea.right, (int)drawArea.bottom));
+	    	drawable.draw(canvas);
+	    	//canvas.drawRect(drawArea, getSelfPaint());
 		}
 	}
 }
